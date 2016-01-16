@@ -5,8 +5,8 @@ using System.Collections.Generic;
 public class FollowPath : MonoBehaviour {
 	// Use this for initialization
 
-	public PathDefinition Path;
-	public float Speed = 5;
+	public WavePath Path;
+	public float Speed = 10;
 	public float MaxDistanceToGoal = .1f;
 
 	private IEnumerator<Transform> _pointIterator;
@@ -16,7 +16,7 @@ public class FollowPath : MonoBehaviour {
 			Debug.LogError("Path must not be null", gameObject);
 		}
 
-		_pointIterator = Path.GetPathEnumerator();
+		_pointIterator = Path.GetPathEnumeratorForwardAndBack();
 		_pointIterator.MoveNext ();
 
 		if (_pointIterator.Current == null) {
