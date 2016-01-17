@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System;
 
 [Serializable]
-public class EnemyTemplate {
+public class WaveTemplate {
 	public GameObject EnemyPrefab;
 	public int Amount;
 }

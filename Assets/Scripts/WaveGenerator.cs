@@ -8,15 +8,12 @@ public class WaveGenerator : MonoBehaviour {
 	/// Time between waves in seconds.
 	/// </summary>
 	public float DelayBetweenWaves = 30;
-	
-	/// <summary>
-	/// Time between en enemies of the same wave in seconds.
-	/// </summary>
-	public float DelayBetweenEnemies = 2;
 
 	public WavePath Path;
 	
-	public EnemyTemplate[] EnemyTemplates;
+	public WaveTemplate[] WaveTemplates;
+
+	public TextMesh InfoText;
 
 	List<Wave> _waves;
 
@@ -28,83 +25,100 @@ public class WaveGenerator : MonoBehaviour {
 		}
 	}
 
-	/// <summary>
-	/// The enemy template of the next wave (following the current wave)
-	/// </summary>
-	public EnemyTemplate NextWaveEnemyTemplate {
+	public int CurrentWaveNumber {
 		get {
-			if (EnemyTemplates.Length <= _waves.Count) {
-				// already spawned all waves
-				return null;
-			}
-			return EnemyTemplates[_waves.Count];
+			return _waves.Count+1;
 		}
 	}
 
-	public bool IsNextWaveReady {
+	/// <summary>
+	/// The enemy template of the next wave (following the current wave)
+	/// </summary>
+	public WaveTemplate NextWaveTemplate {
 		get {
-			return CurrentWave == null || CurrentWave.HaveAllEnemiesSpawned;
+			if (WaveTemplates.Length <= _waves.Count) {
+				// already spawned all waves
+				return null;
+			}
+			return WaveTemplates[_waves.Count];
+		}
+	}
+
+	public bool HasMoreWaves {
+		get {
+			return NextWaveTemplate != null;
 		}
 	}
 
 	// Use this for initialization
 	void Start () {
-		if (EnemyTemplates == null || EnemyTemplates.Length == 0) {
+		if (WaveTemplates == null || WaveTemplates.Length == 0) {
 			Debug.LogError("There must be at least one wave");
 		}
 
 		_waves = new List<Wave> ();
 
-		// start timer
-		_lastUpdate = Time.time;
+		ResetTimer ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (GameManager.Instance.IsGameOver) {
-			// game already finished, don't update again
-			return;
+		// update all currently running waves
+		foreach (var wave in _waves) {
+			wave.Update();
 		}
 
+		// check if we need to spawn another wave
+		if (HasMoreWaves) {
+			UpdateWaveProgress ();
+		} else {
+			InfoText.text = "Last Wave!";
+		}
+	}
+
+	void UpdateWaveProgress() {
 		var now = Time.time;
 		var timeSinceLastUpdate = now - _lastUpdate;
 
-		var waitTime = IsNextWaveReady ? DelayBetweenWaves : DelayBetweenEnemies;
-
-		if (timeSinceLastUpdate >= waitTime) {
-			if (IsNextWaveReady) {
-				SpawnNextWave();
-			} else {
-				SpawnNextEnemy();
-			}
+		InfoText.text = "Next wave: " + CurrentWaveNumber + " (" + (DelayBetweenWaves - timeSinceLastUpdate).ToString ("0") + "s)";
+		
+		if (timeSinceLastUpdate >= DelayBetweenWaves) {
+			StartNextWave ();
 		}
 	}
 	
-	// spawn next wave
-	void SpawnNextWave() {
-		var nextEnemyTemplate = NextWaveEnemyTemplate;
-		if (nextEnemyTemplate == null) {
+	public void ResetTimer() {
+		// reset timer
+		_lastUpdate = Time.time;
+	}
+	
+	// start next wave
+	public void StartNextWave() {
+		if (NextWaveTemplate == null) {
 			// all waves done!
-			GameManager.Instance.OnFinishedAllWaves();
+			GameManager.Instance.OnLastWave();
 			return;
 		}
 
 		// create new wave
-		var wave = new Wave ();
-		wave.EnemyTemplate = nextEnemyTemplate;
-		wave.Path = Path;
+		var wave = new Wave (this);
+		wave.WaveTemplate = NextWaveTemplate;
 		_waves.Add (wave);
 
 		// spawn first enemy in new wave
-		SpawnNextEnemy ();
+		wave.Start ();
+
+		ResetTimer ();
 	}
 	
-	// spawn next enemy within current wave
-	void SpawnNextEnemy() {
-		var currentWave = CurrentWave;
-		var enemy = Instantiate (currentWave.EnemyTemplate.EnemyPrefab);
-
-		// TODO: register enemy
-		// TODO: move enemy to starting position
+	// start next enemy of given wave
+	public void SpawnNextEnemy(Wave wave) {
+		var enemyObject = Instantiate (wave.WaveTemplate.EnemyPrefab);
+		var enemy = enemyObject.GetComponent<Enemy> ();
+		enemy.InitEnemy (wave);
+		wave.Enemies.Add (enemy);
+		
+		// move enemy to starting position
+		enemy.transform.position = Path.FirstPoint.position;
 	}
 }

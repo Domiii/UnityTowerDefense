@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour {
 	public static GameManager Instance;
 
 	public GameStatus CurrentGameStatus = GameStatus.Running;
+	public WaveGenerator WaveGenerator;
 
 	public bool IsGameOver {
 		get { return CurrentGameStatus == GameStatus.Finished; }
@@ -33,10 +34,18 @@ public class GameManager : MonoBehaviour {
 		Instance = this;
 	}
 
+	public void StartNextWave() {
+		WaveGenerator.StartNextWave ();
+	}
+
+	public void OnLastWave() {
+
+	}
+
 	/// <summary>
 	/// This method is called when player has beaten all waves
 	/// </summary>
-	public void OnAllWavesDone() {
+	public void OnFinishedAllWaves() {
 		// TODO: End the game!
 		CurrentGameStatus = GameStatus.Finished;
 	}

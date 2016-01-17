@@ -13,6 +13,16 @@ public class WavePath : MonoBehaviour {
 		}
 	}
 
+	public Transform FirstPoint {
+		get {
+			if (transform.childCount == 0) {
+				return null;
+			}
+
+			return transform.GetChild(0);
+		}
+	}
+
 	public void OnDrawGizmos() {
 		if (transform.childCount < 2) {
 			return;
