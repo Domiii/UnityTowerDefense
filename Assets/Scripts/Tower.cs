@@ -4,7 +4,7 @@ using System.Collections;
 public class Tower : MonoBehaviour {
 	public GameObject ProjectilePrefab;
 	public float ShootDelaySeconds = 1;
-	public Living CurrentTarget;
+	public Enemy CurrentTarget;
 
 	float _lastShotTime;
 
@@ -19,8 +19,8 @@ public class Tower : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		// update CurrentTarget
-		if (CurrentTarget == null) {
-			CurrentTarget = Living.FindNextAlive();
+		if (CurrentTarget == null || !CurrentTarget.IsAlive) {
+			CurrentTarget = Enemy.FindNextAlive();
 		}
 
 		if (CurrentTarget != null) {

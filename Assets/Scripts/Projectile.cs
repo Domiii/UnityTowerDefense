@@ -15,7 +15,6 @@ public class Projectile : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		startTime = Time.time;
-
 	}
 	
 	// Update is called once per frame
@@ -31,11 +30,11 @@ public class Projectile : MonoBehaviour {
 	}
 
 	void OnCollisionEnter2D (Collision2D col) {
-		if (col.gameObject.CompareTag(Living.AliveTag)) {
+		if (col.gameObject.CompareTag(Enemy.AliveTag)) {
 			// when colliding with Living -> Cause damage
-			var living = col.gameObject.GetComponent<Living>();
-			if (living != null) {
-				living.Damage(Damage);
+			var enemy = col.gameObject.GetComponent<Enemy>();
+			if (enemy != null) {
+				enemy.Damage(Damage);
 			}
 		}
 		Destroy (gameObject);

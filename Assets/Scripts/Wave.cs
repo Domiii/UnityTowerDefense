@@ -7,11 +7,6 @@ using System;
 public class Wave {
 	public WaveGenerator WaveGenerator;
 	public WaveTemplate WaveTemplate;
-	
-	/// <summary>
-	/// Time between enemies of this wave, in seconds.
-	/// </summary>
-	public float DelayBetweenEnemies = 2;
 
 	/// <summary>
 	/// The set of enemies attacking this round.
@@ -43,7 +38,7 @@ public class Wave {
 			var now = Time.time;
 			var timeSinceLastUpdate = now - _lastUpdate;
 			
-			if (timeSinceLastUpdate >= DelayBetweenEnemies) {
+			if (timeSinceLastUpdate >= WaveTemplate.DelayBetweenEnemies) {
 				WaveGenerator.SpawnNextEnemy(this);
 				ResetTimer ();
 			}

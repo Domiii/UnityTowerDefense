@@ -2,13 +2,23 @@
 using System.Collections;
 
 /**
+ * Features:
+ * Enemy spawning + following along path
+ * Towers shooting
+ * Enemy health, damage + death
+ */
+
+/**
  * TODO: Game
- * 1. Enemy spawning + moving
- * 2. Towers + Tower placement
- * 3. Towers shooting
- * 4. Enemy health
- * 5. Lives taken when Enemy makes it to the end of path
- * 6. Solve problems to refill tower ammunition -> Problems = Coding- and design-related vocabulary exercises + maybe small-coding-problem solving
+ * Tower placement
+ * Lives taken when Enemy makes it to the end of path	
+ * Point + money system
+ * Fix UI (see http://stackoverflow.com/questions/25477492/unity-4-6-how-to-scale-gui-elements-to-the-right-size-for-every-resolution)
+ * Tower range
+ * TowerTemplates
+ * Tower upgrades
+ * Solve problems to refill tower ammunition -> Problems = Coding- and design-related vocabulary exercises + maybe small-coding-problem solving
+ * Replace dead enemies with decaying corpses
  */
 
 /// <summary>
