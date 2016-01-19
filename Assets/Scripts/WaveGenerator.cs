@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ public class WaveGenerator : MonoBehaviour {
 	
 	public WaveTemplate[] WaveTemplates;
 
-	public TextMesh InfoText;
+	public Text InfoText;
 
 	List<Wave> _waves;
 
@@ -50,10 +51,19 @@ public class WaveGenerator : MonoBehaviour {
 		}
 	}
 
+	void ShowText(string text) {
+		if (InfoText != null) {
+			InfoText.text = text;
+		}
+	}
+
 	// Use this for initialization
 	void Start () {
 		if (WaveTemplates == null || WaveTemplates.Length == 0) {
-			Debug.LogError("There must be at least one wave");
+			Debug.LogError("WaveTemplates are empty");
+		}
+		if (WaveTemplates == null || WaveTemplates.Length == 0) {
+			Debug.LogError("WavePath is not set");
 		}
 
 		_waves = new List<Wave> ();
@@ -72,7 +82,7 @@ public class WaveGenerator : MonoBehaviour {
 		if (HasMoreWaves) {
 			UpdateWaveProgress ();
 		} else {
-			InfoText.text = "Last Wave!";
+			ShowText("Last Wave!");
 		}
 	}
 
@@ -80,7 +90,7 @@ public class WaveGenerator : MonoBehaviour {
 		var now = Time.time;
 		var timeSinceLastUpdate = now - _lastUpdate;
 
-		InfoText.text = "Next wave: " + CurrentWaveNumber + " (" + (DelayBetweenWaves - timeSinceLastUpdate).ToString ("0") + "s)";
+		ShowText("Next wave: " + CurrentWaveNumber + " (" + (DelayBetweenWaves - timeSinceLastUpdate).ToString ("0") + "s)");
 		
 		if (timeSinceLastUpdate >= DelayBetweenWaves) {
 			StartNextWave ();

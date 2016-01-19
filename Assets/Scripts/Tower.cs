@@ -4,8 +4,8 @@ using System.Collections;
 public class Tower : MonoBehaviour {
 	public GameObject ProjectilePrefab;
 	public float ShootDelaySeconds = 1;
-	public Enemy CurrentTarget;
 
+	public Enemy CurrentTarget;
 	float _lastShotTime;
 
 	// Use this for initialization
