@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,11 +9,9 @@ public class WaveGenerator : MonoBehaviour {
 	/// Time between waves in seconds.
 	/// </summary>
 	public float DelayBetweenWaves = 30;
-
 	public WavePath Path;
-	
+	public WavePath.FollowDirection PathDirection;
 	public WaveTemplate[] WaveTemplates;
-
 	public Text InfoText;
 
 	List<Wave> _waves;
@@ -123,12 +121,10 @@ public class WaveGenerator : MonoBehaviour {
 	
 	// start next enemy of given wave
 	public void SpawnNextEnemy(Wave wave) {
-		var enemyObject = Instantiate (wave.WaveTemplate.EnemyPrefab);
-		var enemy = enemyObject.GetComponent<Enemy> ();
-		enemy.InitEnemy (wave);
-		wave.Enemies.Add (enemy);
-		
-		// move enemy to starting position
-		enemy.transform.position = Path.FirstPoint.position;
+		var followerObj = (GameObject)Instantiate (wave.WaveTemplate.EnemyPrefab, transform.position, Quaternion.identity);
+		var follower = followerObj.GetComponent<PathFollower> ();
+		follower.InitFollower (wave);
+		wave.Enemies.Add (follower);
+		FactionMember.SetFaction (followerObj, gameObject);
 	}
 }

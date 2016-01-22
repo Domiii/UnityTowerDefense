@@ -6,9 +6,6 @@ public class Projectile : MonoBehaviour {
 	public float Speed = 1;
 	public float MaxLifeTimeSeconds = 10;
 
-	public Vector3 FlightDirection;
-
-
 	float startTime;
 
 
@@ -28,15 +25,13 @@ public class Projectile : MonoBehaviour {
 			return;
 		}
 	}
-
-	void OnCollisionEnter2D (Collision2D col) {
-		if (col.gameObject.CompareTag(Enemy.AliveTag)) {
-			// when colliding with Living -> Cause damage
-			var enemy = col.gameObject.GetComponent<Enemy>();
-			if (enemy != null) {
-				enemy.Damage(Damage);
-			}
+	
+	void OnTriggerEnter2D(Collider2D col) {
+		// when colliding with Unit -> Cause damage
+		var target = col.gameObject.GetComponent<Unit>();
+		if (target != null && target.CanBeAttacked && FactionMember.AreHostile (gameObject, target.gameObject)) {
+			target.Damage(Damage);
+			Destroy (gameObject);
 		}
-		Destroy (gameObject);
 	}
 }

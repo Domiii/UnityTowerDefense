@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 
 /**
@@ -10,16 +9,40 @@ using System.Collections;
  */
 
 /**
- * TODO: Game
+ * New Fixes:
+ * Projectile
+ * 		* Reduce Projectile mass to a fraction
+ * 		* Change Projectile to trigger
+ * 		* Set CD on Projectile to continuous
+ * 
+ * #############################
+ * 
+ * New Features (old code):
  * Tower placement
- * Lives taken when Enemy makes it to the end of path	
+ * FriendlyBase (trigger) + Lives taken when Enemy makes it to the end of path (add RigidBody2D to Enemy)
+ * 
+ * --
+ * 
+ * New Features (new code):
+ * GameUIManager
+ * Add sorting layer
+ * Dimmer (Set sorting layer positions)
+ * Add Selectable
+ * Add Attacker to Tower (adds range)
+ * Make complex shapes collidable + selectable (PolygonCollider2D + Point Editor)
+ */
+
+/**
+ * TODO: Game
+ * Attacker (Tower also needs it) + Unit (角色) + Layers for factions
+ * Friendly Units
+ * Units attack each other
  * Point + money system
  * Fix UI (see http://stackoverflow.com/questions/25477492/unity-4-6-how-to-scale-gui-elements-to-the-right-size-for-every-resolution)
- * Tower range
  * TowerTemplates
  * Tower upgrades
- * Solve problems to refill tower ammunition -> Problems = Coding- and design-related vocabulary exercises + maybe small-coding-problem solving
- * Replace dead enemies with decaying corpses
+ * Add the serious part!
+ * Make it fun and interesting!
  */
 
 /// <summary>
@@ -36,28 +59,16 @@ public class GameManager : MonoBehaviour {
 
 	#region Game Variables
 	public GameStatus CurrentGameStatus = GameStatus.Running;
-	public WaveGenerator WaveGenerator;
 
-	private int credits;
-
-	public int Credits {
-		get { return credits; }
-		set {
-			credits = value;
-			UpdateText();
-		}
-	}
-	#endregion
-
-
-	#region Text
-	public Text CreditText;
-
-	void UpdateText() {
-		if (CreditText != null) {
-			CreditText.text = "Credits: " + credits;
-		}
-	}
+//	private int credits;
+//
+//	public int Credits {
+//		get { return credits; }
+//		set {
+//			credits = value;
+//			GameUIManager.Instance.UpdateText();
+//		}
+//	}
 	#endregion
 
 
@@ -71,7 +82,10 @@ public class GameManager : MonoBehaviour {
 
 	#region GameManager Methods
 	public void StartNextWave() {
-		WaveGenerator.StartNextWave ();
+		var waveGenerators = FindObjectsOfType(typeof(WaveGenerator));
+		foreach (var waveGenerator in waveGenerators) {
+			((WaveGenerator)waveGenerator).StartNextWave ();
+		}
 	}
 
 	public void GainCredits() {
@@ -90,5 +104,5 @@ public class GameManager : MonoBehaviour {
 		// TODO: End the game!
 		CurrentGameStatus = GameStatus.Finished;
 	}
-	#endregion
+   	#endregion
 }

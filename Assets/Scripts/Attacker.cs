@@ -1,0 +1,232 @@
+﻿using UnityEngine;
+using System.Collections;
+
+public class Attacker : MonoBehaviour {
+	public GameObject ProjectilePrefab;
+	public float ShootDelaySeconds = 1;
+	public float AttackRadius = 30.0f;
+
+	Collider2D[] _collidersInRange = new Collider2D[128];
+	Unit _currentTarget;
+	bool _isAttacking;
+	float _lastShotTime;
+
+	SpriteRenderer _highlighter;
+
+
+	#region Default Events
+	// Use this for initialization
+	void Start () {
+		if (ProjectilePrefab == null) {
+			Debug.LogError("Attacker is missing Projectile Prefab", this);
+			return;
+		}
+
+		_isAttacking = false;
+		//lastShotTime = Time.time;
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		AimAndShoot ();
+
+		if (_currentTarget != null) {
+			var dir = (_currentTarget.transform.position - transform.position).normalized * AttackRadius;
+			Debug.DrawRay (transform.position, dir);
+		}
+
+		if (_highlighter != null && _highlighter.gameObject.activeInHierarchy) {
+			_highlighter.transform.position = transform.position;
+		}
+	}
+
+	void OnDeath() {
+		enabled = false;
+		OnUnselect ();
+	}
+	#endregion
+	
+	
+	#region Targeting
+	public bool IsAttacking {
+		get { return HasValidTarget; }
+	}
+
+	public bool HasValidTarget {
+		get {
+			return _currentTarget != null && IsValidTarget(_currentTarget);
+		}
+	}
+
+	public bool IsValidTarget(Unit target) {
+		return target.CanBeAttacked && FactionMember.AreHostile (gameObject, target.gameObject);
+	}
+
+	Unit FindTarget() {
+		var nResults = Physics2D.OverlapCircleNonAlloc(transform.position, AttackRadius, _collidersInRange);
+		for (var i = 0; i < nResults; ++i) {
+			var collider = _collidersInRange[i];
+			var unit = collider.GetComponent<Unit> ();
+			if (unit != null && IsValidTarget(unit)) {
+				return unit;
+			}
+		}
+
+		// no valid target found
+		return null;
+	}
+	
+	bool UpdateCurrentTarget() {
+		// find new target
+		_currentTarget = FindTarget();
+		
+		if (HasValidTarget) {
+			return true;
+		}
+		else {
+			ResetRotation();
+		}
+		return false;
+	}
+	#endregion
+
+
+	#region Highlighting
+	SpriteRenderer CreateHighlighterObject() {
+		var go = (GameObject)Instantiate(GameUIManager.Instance.AttackerHighlighterPrefab, transform.position, transform.rotation);
+		var highlighter = go.GetComponent<SpriteRenderer>();
+		if (highlighter == null) {
+			Debug.LogError("Attack has invalid Highlighter Prefab. Highlighter must have a SpriteRenderer.");
+			Destroy (go);
+			return null;
+		}
+
+		highlighter.sortingLayerName = "Highlight";
+		
+		// get world-space bounds
+		var max = highlighter.transform.InverseTransformPoint(highlighter.bounds.max);
+		var min = highlighter.transform.InverseTransformPoint(highlighter.bounds.min);
+
+		var diameter = 2 * AttackRadius;
+		var xFactor = diameter / (max.x - min.x);
+		var yFactor = diameter / (max.y - min.y);
+
+		var scale = highlighter.transform.localScale;
+		highlighter.transform.localScale = new Vector3(scale.x * xFactor, scale.y * yFactor, 1);
+
+		return highlighter;
+	}
+
+	SpriteRenderer HighlighterObject {
+		get {
+			if (_highlighter == null) {
+				if (GameUIManager.Instance.AttackerHighlighterPrefab != null) {
+					_highlighter = CreateHighlighterObject();
+				}
+			}
+			return _highlighter;
+		}
+	}
+
+	void OnSelect() {
+		var highlighterObject = HighlighterObject;
+		if (highlighterObject == null) {
+			return;
+		}
+		
+		highlighterObject.gameObject.SetActive (true);
+	}
+	
+	void OnUnselect() {
+		if (_highlighter == null) {
+			return;
+		}
+		_highlighter.gameObject.SetActive (false);
+	}
+	#endregion
+
+	Quaternion GetRotationToward(Transform targetTransform) {
+		Vector3 dir = targetTransform.position - transform.position;
+		var angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg - 90;
+		return Quaternion.AngleAxis(angle, Vector3.forward);
+	}
+	
+	void ResetRotation() {
+		//transform.rotation = Quaternion.AngleAxis (0, Vector3.forward);
+	}
+	
+	void RotateTowardTarget() {
+		if (!HasValidTarget) {
+			return;
+		}
+		
+		var rigidbody = GetComponent<Rigidbody2D> ();
+		if (rigidbody != null && (rigidbody.constraints & RigidbodyConstraints2D.FreezeRotation) != 0) {
+			// don't rotate if rotation has been constrained
+			return;
+		}
+		
+		//transform.LookAt (CurrentTarget.transform.position);
+
+		transform.rotation = GetRotationToward(_currentTarget.transform);
+	}
+
+	#region Attack
+	void AimAndShoot() {
+		if (ProjectilePrefab == null) {
+			return;
+		}
+		
+		if (!UpdateCurrentTarget ()) {
+			// no valid target
+			if (_isAttacking) {
+				// we have stopped attacking
+				StopAttacking ();
+			}
+		} else {
+			if (!_isAttacking) {
+				// we have started attacking
+				StartAttacking ();
+			}
+
+
+			var delay = Time.time - _lastShotTime;
+			if (delay < ShootDelaySeconds) {
+				// still on cooldown
+				return;
+			}
+			
+			RotateTowardTarget();
+			ShootAt (_currentTarget);
+		}
+	}
+	
+	public void ShootAt(Unit target) {
+		// create a new projectile
+		var projectileObj = (GameObject)Instantiate(ProjectilePrefab, transform.position, GetRotationToward(_currentTarget.transform));
+
+		// set faction
+		FactionMember.SetFaction (projectileObj, gameObject);
+
+		// set velocity
+		var projectile = projectileObj.GetComponent<Projectile> ();
+		var rigidbody = projectileObj.GetComponent<Rigidbody2D> ();
+		var direction = target.transform.position - projectileObj.transform.position;
+		direction.Normalize ();
+		rigidbody.velocity = direction * projectile.Speed;
+
+		// reset shoot time
+		_lastShotTime = Time.time;
+	}
+	
+	void StartAttacking() {
+		_isAttacking = true;
+		SendMessage ("OnAttackStart", SendMessageOptions.DontRequireReceiver);
+	}
+	
+	void StopAttacking() {
+		_isAttacking = false;
+		SendMessage ("OnAttackStop", SendMessageOptions.DontRequireReceiver);
+	}
+	#endregion
+}

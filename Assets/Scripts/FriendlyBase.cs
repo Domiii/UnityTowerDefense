@@ -16,17 +16,16 @@ public class FriendlyBase : MonoBehaviour {
 	
 	}
 
-
 	// any entering enemy is removed and costs a life
-	void OnCollisionEnter2D(Collision2D col) {
-		var enemy = col.gameObject.GetComponent<Enemy> ();
-		if (enemy != null && enemy.IsAlive) {
+	void OnTriggerEnter2D(Collider2D col) {
+		var enemy = col.gameObject.GetComponent<PathFollower> ();
+		if (enemy != null) {
 			// enemy reached the target
 			OnAttack(enemy);
 		}
 	}
 
-	void OnAttack(Enemy enemy) {
+	void OnAttack(PathFollower enemy) {
 		Lives -= 1;
 		Destroy (enemy.gameObject);
 		UpdateText ();
