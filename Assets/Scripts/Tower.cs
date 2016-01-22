@@ -8,6 +8,12 @@ public class Tower : MonoBehaviour {
 	public Enemy CurrentTarget;
 	float _lastShotTime;
 
+	public bool HasValidTarget {
+		get {
+			return CurrentTarget != null && CurrentTarget.IsAlive;
+		}
+	}
+
 	// Use this for initialization
 	void Start () {
 		if (ProjectilePrefab == null) {
@@ -18,23 +24,38 @@ public class Tower : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		// update CurrentTarget
-		if (CurrentTarget == null || !CurrentTarget.IsAlive) {
-			CurrentTarget = Enemy.FindNextAlive();
-		}
+		RotateTowardTarget ();
+		ShootAtTarget ();
+	}
 
-		if (CurrentTarget != null) {
-			RotateTowardTarget ();
-			ShootAtTarget ();
+	void UpdateCurrentTarget() {
+		if (!HasValidTarget) {
+			// find new target
+			CurrentTarget = Enemy.FindNextAlive();
+			
+			if (HasValidTarget) {
+				RotateTowardTarget();
+			}
+			else {
+				ResetRotation();
+			}
 		}
 	}
 
+	void ResetRotation() {
+		transform.rotation = Quaternion.AngleAxis (0, Vector3.forward);
+	}
+
 	void RotateTowardTarget() {
-		Vector3 targetDir = CurrentTarget.transform.position - transform.position;
-		//float step = speed * Time.deltaTime;
-		Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, 100, 0.0F);
-		Debug.DrawRay(transform.position, newDir, Color.red);
+		if (!HasValidTarget) {
+			return;
+		}
+
 		//transform.LookAt (CurrentTarget.transform.position);
+		Vector3 dir = CurrentTarget.transform.position - transform.position;
+		var angle = Mathf.Atan2 (dir.y, dir.x) * Mathf.Rad2Deg - 90;
+		var rot = Quaternion.AngleAxis(angle, Vector3.forward);
+		transform.rotation = rot;
 	}
 
 	void ShootAtTarget() {
@@ -42,11 +63,16 @@ public class Tower : MonoBehaviour {
 			return;
 		}
 
-
 		var now = Time.time;
 		var delay = now - _lastShotTime;
 		if (delay < ShootDelaySeconds) {
 			// still on cooldown
+			return;
+		}
+		
+		// update CurrentTarget
+		UpdateCurrentTarget ();
+		if (!HasValidTarget) {
 			return;
 		}
 
