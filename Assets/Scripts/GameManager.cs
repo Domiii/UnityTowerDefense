@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 /**
@@ -33,21 +34,51 @@ public class GameManager : MonoBehaviour {
 
 	public static GameManager Instance;
 
+	#region Game Variables
 	public GameStatus CurrentGameStatus = GameStatus.Running;
 	public WaveGenerator WaveGenerator;
 
-	public bool IsGameOver {
-		get { return CurrentGameStatus == GameStatus.Finished; }
+	private int credits;
+
+	public int Credits {
+		get { return credits; }
+		set {
+			credits = value;
+			UpdateText();
+		}
 	}
+	#endregion
+
+
+	#region Text
+	public Text CreditText;
+
+	void UpdateText() {
+		if (CreditText != null) {
+			CreditText.text = "Credits: " + credits;
+		}
+	}
+	#endregion
+
 
 	public GameManager() {
 		Instance = this;
 	}
+	
+	public bool IsGameOver {
+		get { return CurrentGameStatus == GameStatus.Finished; }
+	}
 
+	#region GameManager Methods
 	public void StartNextWave() {
 		WaveGenerator.StartNextWave ();
 	}
 
+	public void GainCredits() {
+	}
+	#endregion
+
+	#region Game Events
 	public void OnLastWave() {
 
 	}
@@ -59,4 +90,5 @@ public class GameManager : MonoBehaviour {
 		// TODO: End the game!
 		CurrentGameStatus = GameStatus.Finished;
 	}
+	#endregion
 }
