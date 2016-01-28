@@ -13,13 +13,13 @@ public class PathFollower : MonoBehaviour {
 	Wave _wave;
 	IEnumerator<Transform> _pathIterator;
 	RigidbodyConstraints2D _originalConstraints;
+	float[] angleDistortions;
 	
 	public void InitFollower(Wave wave) {
 		Debug.Assert (wave != null);
 		
 		_wave = wave;
 		Path = _wave.WaveGenerator.Path;
-
 		
 		RestartPath ();
 	}
@@ -29,20 +29,26 @@ public class PathFollower : MonoBehaviour {
 		if (!enabled)
 			return;
 
-		// stop moving
+		// add a lot of drag (so unity will not be pushed so easily)
 		var rigidbody = GetComponent<Rigidbody2D> ();
-		_originalConstraints = rigidbody.constraints;
-		rigidbody.constraints = RigidbodyConstraints2D.FreezeAll;
+		//_originalConstraints = rigidbody.constraints;
+		//rigidbody.constraints = RigidbodyConstraints2D.FreezeAll;
+		rigidbody.drag = 40f;
 
 		enabled = false;
 	}
 
 	void OnAttackStop() {
 		var rigidbody = GetComponent<Rigidbody2D> ();
-		rigidbody.constraints = _originalConstraints;
+		//rigidbody.constraints = _originalConstraints;
+		rigidbody.drag = 10f;
+
 		enabled = true;
 	}
 	#endregion
+
+	void GenerateDistortions() {
+	}
 
 	void RestartPath() {
 		if (_wave != null) {
