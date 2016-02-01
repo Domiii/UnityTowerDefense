@@ -129,11 +129,11 @@ public class WaveGenerator : MonoBehaviour {
 		// add faction
 		FactionMember.SetFaction (followerObj, gameObject);
 
-		// set color
-		var renderer = GetComponent<SpriteRenderer> ();
-		var followerRenderer = follower.GetComponent<SpriteRenderer> ();
-		if (renderer != null) {
-			followerRenderer.color = renderer.color;
-		}
+//		// set color
+//		var renderer = GetComponent<SpriteRenderer> ();
+//		var followerRenderer = follower.GetComponent<SpriteRenderer> ();
+//		if (renderer != null) {
+//			followerRenderer.color = renderer.color;
+//		}
 	}
 }

@@ -34,11 +34,10 @@ using System.Collections;
 
 /**
  * TODO: Game
- * Attacker (Tower also needs it) + Unit (角色) + Layers for factions
- * Friendly Units
- * Units attack each other
- * Point + money system
- * Fix UI (see http://stackoverflow.com/questions/25477492/unity-4-6-how-to-scale-gui-elements-to-the-right-size-for-every-resolution)
+ * Point + money + recruitment system
+ * LoS + Basics of Game Design
+ * Unit Stats Overview
+ * More Unit features (AoE, Stun, Slow, Heal)
  * TowerTemplates
  * Tower upgrades
  * Add the serious part!

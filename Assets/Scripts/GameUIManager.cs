@@ -21,13 +21,21 @@ public class GameUIManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		// create invisible highlighter
-		dimmerObject = Instantiate (DimmerPrefab);
-		dimmerObject.SetActive (false);
+		if (HasDimmer) {
+			dimmerObject = Instantiate (DimmerPrefab);
+			dimmerObject.SetActive (false);
+		}
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
+	}
+
+	public bool HasDimmer {
+		get {
+			return DimmerPrefab != null;
+		}
 	}
 	
 	#region Selection + Highlighting
@@ -64,7 +72,9 @@ public class GameUIManager : MonoBehaviour {
 		}
 
 		// make highlighter visible
-		dimmerObject.SetActive (true);
+		if (HasDimmer) {
+			dimmerObject.SetActive (true);
+		}
 
 		// send message
 		currentSelection.SendMessage ("OnSelect", SendMessageOptions.DontRequireReceiver);
@@ -85,8 +95,10 @@ public class GameUIManager : MonoBehaviour {
 			currentSelection = null;
 		}
 
-		// make highlighter invisible
-		dimmerObject.SetActive (false);
+		if (HasDimmer) {
+			// make dimmer invisible
+			dimmerObject.SetActive (false);
+		}
 	}
 	#endregion
 	
