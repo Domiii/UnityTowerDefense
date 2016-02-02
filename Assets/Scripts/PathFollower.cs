@@ -12,8 +12,6 @@ public class PathFollower : MonoBehaviour {
 	float _maxDistanceToGoal;
 	Wave _wave;
 	IEnumerator<Transform> _pathIterator;
-	RigidbodyConstraints2D _originalConstraints;
-	float[] angleDistortions;
 	
 	public void InitFollower(Wave wave) {
 		Debug.Assert (wave != null);
@@ -33,7 +31,7 @@ public class PathFollower : MonoBehaviour {
 		var rigidbody = GetComponent<Rigidbody2D> ();
 		//_originalConstraints = rigidbody.constraints;
 		//rigidbody.constraints = RigidbodyConstraints2D.FreezeAll;
-		rigidbody.drag = 40f;
+		//rigidbody.drag = 40f;
 
 		enabled = false;
 	}
@@ -41,7 +39,7 @@ public class PathFollower : MonoBehaviour {
 	void OnAttackStop() {
 		var rigidbody = GetComponent<Rigidbody2D> ();
 		//rigidbody.constraints = _originalConstraints;
-		rigidbody.drag = 10f;
+		//rigidbody.drag = 10f;
 
 		enabled = true;
 	}
