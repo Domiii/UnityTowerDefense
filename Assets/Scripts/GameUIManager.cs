@@ -44,7 +44,6 @@ public class GameUIManager : MonoBehaviour {
 	}
 
 	public void ToggleSelect(Selectable obj) {
-		Debug.Log (obj);
 		if (IsSelected(obj)) {
 			ClearSelection();
 		} else {
@@ -64,15 +63,15 @@ public class GameUIManager : MonoBehaviour {
 		// select object
 		currentSelection = obj;
 
-		// move object on top of dimmer
-		var renderer = currentSelection.GetComponent<SpriteRenderer> ();
-		if (renderer != null) {
-			currentSelectionSortingLayerID = renderer.sortingLayerID;
-			renderer.sortingLayerName = "Highlight";
-		}
-
 		// make highlighter visible
 		if (HasDimmer) {
+			// move object on top of dimmer
+			var renderer = currentSelection.GetComponent<SpriteRenderer> ();
+			if (renderer != null) {
+				currentSelectionSortingLayerID = renderer.sortingLayerID;
+				renderer.sortingLayerName = "Highlight";
+			}
+
 			dimmerObject.SetActive (true);
 		}
 
@@ -82,12 +81,6 @@ public class GameUIManager : MonoBehaviour {
 
 	public void ClearSelection() {
 		if (currentSelection != null) {
-			// reset rendering options
-			var renderer = currentSelection.GetComponent<SpriteRenderer> ();
-			if (renderer != null) {
-				renderer.sortingLayerID = currentSelectionSortingLayerID;
-			}
-
 			// send message
 			currentSelection.SendMessage ("OnUnselect", SendMessageOptions.DontRequireReceiver);
 
@@ -96,6 +89,14 @@ public class GameUIManager : MonoBehaviour {
 		}
 
 		if (HasDimmer) {
+			if (currentSelection != null) {
+				// reset rendering options
+				var renderer = currentSelection.GetComponent<SpriteRenderer> ();
+				if (renderer != null) {
+					renderer.sortingLayerID = currentSelectionSortingLayerID;
+				}
+			}
+
 			// make dimmer invisible
 			dimmerObject.SetActive (false);
 		}

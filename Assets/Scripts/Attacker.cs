@@ -93,7 +93,7 @@ public class Attacker : MonoBehaviour {
 
 	#region Highlighting
 	SpriteRenderer CreateHighlighterObject() {
-		var go = (GameObject)Instantiate(GameUIManager.Instance.AttackerHighlighterPrefab, transform.position, transform.rotation);
+		var go = (GameObject)Instantiate(GameUIManager.Instance.AttackerHighlighterPrefab, transform.position, Quaternion.identity);
 		var highlighter = go.GetComponent<SpriteRenderer>();
 		if (highlighter == null) {
 			Debug.LogError("Attack has invalid Highlighter Prefab. Highlighter must have a SpriteRenderer.");
@@ -103,16 +103,18 @@ public class Attacker : MonoBehaviour {
 
 		highlighter.sortingLayerName = "Highlight";
 		
-		// get world-space bounds
+		// set world-space bounds
 		var max = highlighter.transform.InverseTransformPoint(highlighter.bounds.max);
 		var min = highlighter.transform.InverseTransformPoint(highlighter.bounds.min);
 
 		var diameter = 2 * AttackRadius;
-		var xFactor = diameter / (max.x - min.x);
-		var yFactor = diameter / (max.y - min.y);
+		var realDiameter = Mathf.Max (max.x - min.x, max.y - min.y);
+		var newScale = diameter / realDiameter;
+		//var yFactor = diameter / realDiameter;
 
 		var scale = highlighter.transform.localScale;
-		highlighter.transform.localScale = new Vector3(scale.x * xFactor, scale.y * yFactor, 1);
+		//highlighter.transform.localScale = new Vector3(scale.x * xFactor, scale.y * yFactor, 1);
+		highlighter.transform.localScale = new Vector3(newScale, newScale, 1);
 
 		return highlighter;
 	}
