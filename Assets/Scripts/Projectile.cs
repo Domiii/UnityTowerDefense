@@ -30,7 +30,11 @@ public class Projectile : MonoBehaviour {
 		// when colliding with Unit -> Cause damage
 		var target = col.gameObject.GetComponent<Unit>();
 		if (target != null && target.CanBeAttacked && FactionMember.AreHostile (gameObject, target.gameObject)) {
-			target.Damage(Damage);
+			var damageInfo = new DamageInfo { 
+				Value = Damage,
+				SourceFaction = FactionMember.GetFaction(gameObject)
+			};
+			target.Damage(damageInfo);
 			Destroy (gameObject);
 		}
 	}

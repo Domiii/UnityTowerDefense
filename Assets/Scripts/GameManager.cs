@@ -17,31 +17,8 @@ using System.Collections;
  * 
  * #############################
  * 
- * New Features (old code):
- * Tower placement
- * FriendlyBase (trigger) + Lives taken when Enemy makes it to the end of path (add RigidBody2D to Enemy)
+ * New Features:
  * 
- * --
- * 
- * New Features (new code):
- * GameUIManager
- * Add sorting layer
- * Dimmer (Set sorting layer positions)
- * Add Selectable
- * Add Attacker to Tower (adds range)
- * Make complex shapes collidable + selectable (PolygonCollider2D + Point Editor)
- */
-
-/**
- * TODO: Game
- * Point + money + recruitment system
- * LoS + Basics of Game Design
- * Unit Stats Overview
- * More Unit features (AoE, Stun, Slow, Heal)
- * TowerTemplates
- * Tower upgrades
- * Add the serious part!
- * Make it fun and interesting!
  */
 
 /// <summary>
@@ -59,15 +36,15 @@ public class GameManager : MonoBehaviour {
 	#region Game Variables
 	public GameStatus CurrentGameStatus = GameStatus.Running;
 
-//	private int credits;
-//
-//	public int Credits {
-//		get { return credits; }
-//		set {
-//			credits = value;
-//			GameUIManager.Instance.UpdateText();
-//		}
-//	}
+	private int _credits;
+
+	public int Credits {
+		get { return _credits; }
+		set {
+			_credits = value;
+			GameUIManager.Instance.UpdateText();
+		}
+	}
 	#endregion
 
 
@@ -87,7 +64,13 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
-	public void GainCredits() {
+	public void GainCredits(int credits, Vector3 srcPosition) {
+		Credits += credits;
+		GameUIManager.Instance.ShowGainCreditText (credits, srcPosition);
+	}
+
+	public void DeductCredits(int credits) {
+		Credits -= credits;
 	}
 	#endregion
 

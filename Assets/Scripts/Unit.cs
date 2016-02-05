@@ -29,25 +29,26 @@ public class Unit : MonoBehaviour {
 		get { return IsAlive; }
 	}
 	
-	public void Damage(float damage) {
+	public void Damage(DamageInfo damageInfo) {
 		if (!IsAlive) {
 			// don't do anything when dead
 			return;
 		}
 		
-		Health -= damage;
+		Health -= damageInfo.Value;
 		
 		if (!IsAlive) {
 			// died from damage
-			Die();
+			Die(damageInfo);
 		}
 	}
 	
-	void Die() {
+	void Die(DamageInfo damageInfo) {
 		tag = DeadTag;
 		Health = 0;
-		Destroy (gameObject);
 
-		SendMessage ("OnDeath", SendMessageOptions.DontRequireReceiver);
+		SendMessage ("OnDeath", damageInfo, SendMessageOptions.DontRequireReceiver);
+		
+		Destroy (gameObject);
 	}
 }

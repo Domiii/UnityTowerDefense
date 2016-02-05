@@ -40,7 +40,7 @@ public class Attacker : MonoBehaviour {
 		}
 	}
 
-	void OnDeath() {
+	void OnDeath(DamageInfo damageInfo) {
 		enabled = false;
 		OnUnselect ();
 	}

@@ -7,7 +7,7 @@ using System;
 public class PathFollower : MonoBehaviour {
 	public float Speed = 5;
 	public WavePath Path;
-	public WavePath.FollowDirection pathDirection;
+	public WavePath.FollowDirection PathDirection;
 
 	float _maxDistanceToGoal;
 	Wave _wave;
@@ -50,10 +50,10 @@ public class PathFollower : MonoBehaviour {
 
 	void RestartPath() {
 		if (_wave != null) {
-			pathDirection = _wave.WaveGenerator.PathDirection;
+			PathDirection = _wave.WaveGenerator.PathDirection;
 		}
 		if (Path != null) {
-			_pathIterator = Path.GetPathEnumerator (pathDirection);
+			_pathIterator = Path.GetPathEnumerator (PathDirection);
 			_pathIterator.MoveNext ();
 		}
 	}
@@ -110,6 +110,9 @@ public class PathFollower : MonoBehaviour {
 			// don't let these two collide
 			Physics2D.IgnoreCollision(GetComponent<Collider2D>(), col.collider, true);
 		}
+	}
+
+	void GetStatsData(StatsMenuData statsMenuData) {
 	}
 
 }
