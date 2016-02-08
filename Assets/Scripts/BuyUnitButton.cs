@@ -61,7 +61,6 @@ public class BuyUnitButton : MonoBehaviour {
 
 	void ToggleCooldownOverlay() {
 		_cooldownOverlay.gameObject.SetActive(_isShowingCooldown = !_purchaseOption.IsReady);
-		Debug.Log(_cooldownOverlay.gameObject.activeInHierarchy);
 	}
 
 	void UpdateCooldownProgress() {
