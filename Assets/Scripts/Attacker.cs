@@ -59,7 +59,7 @@ public class Attacker : MonoBehaviour {
 	}
 
 	public bool IsValidTarget(Unit target) {
-		return target.CanBeAttacked && FactionMember.AreHostile (gameObject, target.gameObject);
+		return target.CanBeAttacked && FactionManager.AreHostile (gameObject, target.gameObject);
 	}
 
 	Unit FindTarget() {
@@ -112,7 +112,7 @@ public class Attacker : MonoBehaviour {
 		var newScale = diameter / realDiameter;
 		//var yFactor = diameter / realDiameter;
 
-		var scale = highlighter.transform.localScale;
+		//var scale = highlighter.transform.localScale;
 		//highlighter.transform.localScale = new Vector3(scale.x * xFactor, scale.y * yFactor, 1);
 		highlighter.transform.localScale = new Vector3(newScale, newScale, 1);
 
@@ -208,7 +208,7 @@ public class Attacker : MonoBehaviour {
 		var projectileObj = (GameObject)Instantiate(ProjectilePrefab, transform.position, GetRotationToward(_currentTarget.transform));
 
 		// set faction
-		FactionMember.SetFaction (projectileObj, gameObject);
+		FactionManager.SetFaction (projectileObj, gameObject);
 
 		// set velocity
 		var projectile = projectileObj.GetComponent<Projectile> ();
@@ -231,4 +231,15 @@ public class Attacker : MonoBehaviour {
 		SendMessage ("OnAttackStop", SendMessageOptions.DontRequireReceiver);
 	}
 	#endregion
+	
+	void GetStatsData(StatsMenuData statsMenuData) {
+		statsMenuData.AttackRadius = AttackRadius;
+
+		// get damage from attacker's projectile
+		var projectile = ProjectilePrefab != null ? ProjectilePrefab.GetComponent<Projectile>() : null;
+		if (projectile != null) {
+			statsMenuData.DamageMax = projectile.DamageMax;
+			statsMenuData.DamageMin = projectile.DamageMin;
+		}
+	}
 }

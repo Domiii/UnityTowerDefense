@@ -1,24 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+
 /**
- * Features:
- * Enemy spawning + following along path
- * Towers shooting
- * Enemy health, damage + death
+ * New Features:
+ * Credits system
+ * StatsMenu
  */
 
 /**
- * New Fixes:
- * Projectile
- * 		* Reduce Projectile mass to a fraction
- * 		* Change Projectile to trigger
- * 		* Set CD on Projectile to continuous
- * 
- * #############################
- * 
- * New Features:
- * 
+ * TODO:
+ * Spell system
+ * Animations + Particles (e.g. https://www.assetstore.unity3d.com/en/#!/content/1745)
+ * Start menu
+ * Multiple levels + level selection
  */
 
 /// <summary>
@@ -36,7 +31,8 @@ public class GameManager : MonoBehaviour {
 	#region Game Variables
 	public GameStatus CurrentGameStatus = GameStatus.Running;
 
-	private int _credits;
+	[SerializeField]
+	private int _credits = 100;
 
 	public int Credits {
 		get { return _credits; }
@@ -50,6 +46,10 @@ public class GameManager : MonoBehaviour {
 
 	public GameManager() {
 		Instance = this;
+	}
+
+	void Start() {
+		DontDestroyOnLoad(gameObject);
 	}
 	
 	public bool IsGameOver {

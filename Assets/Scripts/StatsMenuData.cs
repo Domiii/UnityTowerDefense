@@ -3,8 +3,8 @@ using System.Collections;
 
 [System.Serializable]
 public class StatsMenuData {
-	public int Attack;
-	public int Health;
-	public int Range;
-	public int Speed;
+	public float DamageMin, DamageMax;
+	public float MaxHealth, Health;
+	public float AttackRadius;
+	public float Speed;
 }

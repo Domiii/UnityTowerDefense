@@ -2,7 +2,8 @@
 using System.Collections;
 
 public class Projectile : MonoBehaviour {
-	public float Damage = 10;
+	public float DamageMin = 10;
+	public float DamageMax = 20;
 	public float Speed = 1;
 	public float MaxLifeTimeSeconds = 10;
 
@@ -29,10 +30,10 @@ public class Projectile : MonoBehaviour {
 	void OnTriggerEnter2D(Collider2D col) {
 		// when colliding with Unit -> Cause damage
 		var target = col.gameObject.GetComponent<Unit>();
-		if (target != null && target.CanBeAttacked && FactionMember.AreHostile (gameObject, target.gameObject)) {
+		if (target != null && target.CanBeAttacked && FactionManager.AreHostile (gameObject, target.gameObject)) {
 			var damageInfo = new DamageInfo { 
-				Value = Damage,
-				SourceFaction = FactionMember.GetFaction(gameObject)
+				Value = Random.Range(DamageMin, DamageMax),
+				SourceFaction = FactionManager.GetFaction(gameObject)
 			};
 			target.Damage(damageInfo);
 			Destroy (gameObject);

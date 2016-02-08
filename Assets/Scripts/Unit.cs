@@ -51,4 +51,9 @@ public class Unit : MonoBehaviour {
 		
 		Destroy (gameObject);
 	}
+	
+	void GetStatsData(StatsMenuData statsMenuData) {
+		statsMenuData.MaxHealth = MaxHealth;
+		statsMenuData.Health = Health;
+	}
 }

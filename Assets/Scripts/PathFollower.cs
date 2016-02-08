@@ -28,7 +28,7 @@ public class PathFollower : MonoBehaviour {
 			return;
 
 		// add a lot of drag (so unity will not be pushed so easily)
-		var rigidbody = GetComponent<Rigidbody2D> ();
+		//var rigidbody = GetComponent<Rigidbody2D> ();
 		//_originalConstraints = rigidbody.constraints;
 		//rigidbody.constraints = RigidbodyConstraints2D.FreezeAll;
 		//rigidbody.drag = 40f;
@@ -37,7 +37,7 @@ public class PathFollower : MonoBehaviour {
 	}
 
 	void OnAttackStop() {
-		var rigidbody = GetComponent<Rigidbody2D> ();
+		//var rigidbody = GetComponent<Rigidbody2D> ();
 		//rigidbody.constraints = _originalConstraints;
 		//rigidbody.drag = 10f;
 
@@ -113,6 +113,7 @@ public class PathFollower : MonoBehaviour {
 	}
 
 	void GetStatsData(StatsMenuData statsMenuData) {
+		statsMenuData.Speed = Speed;
 	}
 
 }

@@ -127,7 +127,7 @@ public class WaveGenerator : MonoBehaviour {
 		wave.Enemies.Add (follower);
 
 		// add faction
-		FactionMember.SetFaction (followerObj, gameObject);
+		FactionManager.SetFaction (followerObj, gameObject);
 
 //		// set color
 //		var renderer = GetComponent<SpriteRenderer> ();
