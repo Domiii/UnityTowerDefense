@@ -17,8 +17,6 @@ public class BuyUnitMenuEditor : Editor {
 		var result = new Texture2D (textureOrig.width, textureOrig.height, TextureFormat.ARGB32, false);
 		var pixels = textureOrig.GetPixels ();
 
-		Debug.Log (pixels[0].r);
-
 		// replace all matching pixels
 		for (var i = 0; i < pixels.Length; ++i) {
 			var px = pixels[i];
@@ -86,6 +84,31 @@ public class BuyUnitMenuEditor : Editor {
 		return sprite;
 	}
 
+	void MoveAndScaleButton(GameObject btn, int index) {
+		var menu = (BuyUnitMenu)target;
+		var buttonRenderer = btn.GetComponent<SpriteRenderer> ();
+
+
+		// first scale
+		var buttonYMin = buttonRenderer.bounds.min.y;
+		var buttonYMax = buttonRenderer.bounds.max.y;
+		var currentHeight = buttonYMax - buttonYMin;
+		var menuCoords = new Vector3[4];
+		menu.GetComponent<RectTransform> ().GetWorldCorners (menuCoords);
+		var targetHeight = menuCoords [1].y - menuCoords [0].y;
+		var ratio = targetHeight / currentHeight;
+		var scale = buttonRenderer.transform.localScale;
+		buttonRenderer.transform.localScale = new Vector2(scale.x * ratio, scale.y * ratio);
+
+
+		// then move
+		var buttonXMin = buttonRenderer.bounds.min.x;
+		var buttonXMax = buttonRenderer.bounds.max.x;
+		var w = buttonXMax - buttonXMin;
+		var xOffset = menu.transform.position.x - buttonXMin;
+		btn.transform.Translate (new Vector2(xOffset + w * index, 0));
+	}
+
 	void CreateButton(int index, UnitPurchaseOption purchaseOption) {
 		var menu = (BuyUnitMenu)target;
 
@@ -95,20 +118,9 @@ public class BuyUnitMenuEditor : Editor {
 		btnSettings.Menu = menu;
 		btnSettings.PurchaseOption = purchaseOption;
 
-		// add button to menu
+		// add button to pivot point in menu canvas
+		btn.transform.SetParent (menu.transform, false);
 		btn.transform.position = menu.transform.position;
-		btn.transform.SetParent (menu.transform, true);
-
-		var buttonRenderer = btn.GetComponent<SpriteRenderer> ();
-
-		// move to correct position
-		// make sure the min of the first button starts at the menu pivot point
-		var buttonXMin = buttonRenderer.bounds.min.x;
-		var buttonXMax = buttonRenderer.bounds.max.x;
-
-		var w = buttonXMax - buttonXMin;
-		var xOffset = menu.transform.position.x - buttonXMin;
-		btn.transform.Translate (new Vector2(xOffset + w * index, 0));
 
 		var previewObject = btn.transform.FindChild ("Preview");
 		if (previewObject == null) {
@@ -120,14 +132,16 @@ public class BuyUnitMenuEditor : Editor {
 			var previewRenderer = previewObject.GetComponent<SpriteRenderer> ();
 			var previewBounds = previewRenderer.bounds;
 			previewRenderer.sprite = CreateUnitPreview(index, purchaseOption.UnitPrefab, previewBounds);
-
+			
+			// resize (make sure, new sprite fills out the entire space)
 			var previewSize = previewBounds.max - previewBounds.min;
 			var newSize = previewRenderer.bounds.max - previewRenderer.bounds.min;
 			var scale = previewRenderer.transform.localScale;
-
-			// make sure, new sprite fills out the entire space
 			previewRenderer.transform.localScale =  new Vector2(scale.x * previewSize.x / newSize.x, scale.y * previewSize.y / newSize.y);
 		}
+		
+		// finally, scale then move to correct position
+		MoveAndScaleButton (btn, index);
 	}
 
 	void CreateButtons() {
@@ -136,6 +150,11 @@ public class BuyUnitMenuEditor : Editor {
 		var buttonPrefab = menu.ButtonPrefab;
 		var buttonPrefabRenderer = buttonPrefab != null ? buttonPrefab.GetComponent<SpriteRenderer> () : null;
 		var purchaseOptions = menu.FactionManager.PurchaseOptions;
+		
+		if (menu.GetComponent<RectTransform> () == null) {
+			Debug.LogError("BuyUnitMenu is missing RectTransform component. Make sure it is a canvas!", this);
+			return;
+		}
 
 		if (buttonPrefabRenderer == null) {
 			Debug.LogError("ButtonPrefab of BuyUnitMenu is missing SpriteRenderer component.", this);

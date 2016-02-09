@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class BuyUnitButton : MonoBehaviour {
@@ -7,7 +8,9 @@ public class BuyUnitButton : MonoBehaviour {
 
 	bool _isShowingCooldown;
 	Transform _cooldownOverlay;
+	Transform _disabledOverlay;
 	SpriteRenderer _progressBar;
+	Text _costText;
 	
 	public BuyUnitMenu Menu {
 		get {
@@ -35,12 +38,26 @@ public class BuyUnitButton : MonoBehaviour {
 			Debug.LogError("BuyUnitButton is missing child \"CooldownOverlay\"", this);
 			return;
 		}
+		
+		_disabledOverlay = transform.FindFirstDescendantByName("DisabledOverlay");
+		if (_cooldownOverlay == null) {
+			Debug.LogError("BuyUnitButton is missing child \"DisabledOverlay\"", this);
+			return;
+		}
 
 		_progressBar = _cooldownOverlay.FindFirstDescendantByName<SpriteRenderer>("CooldownProgress");
 		if (_progressBar == null) {
-			Debug.LogError("BuyUnitButton is missing child \"CooldownProgress\"", this);
+			Debug.LogError("BuyUnitButton is missing SpriteRenderer child \"CooldownProgress\"", this);
 			return;
 		}
+
+		_costText = transform.FindFirstDescendantByName<Text> ("CostText");
+		if (_costText == null) {
+			Debug.LogError("BuyUnitButton is missing Text child \"CostText\"", this);
+			return;
+		}
+
+		_costText.text = _purchaseOption.CreditCost.ToString ();
 
 		// sync cooldown overlay status initially
 		ToggleCooldownOverlay ();
@@ -49,6 +66,8 @@ public class BuyUnitButton : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		Debug.Assert (_cooldownOverlay != null && _progressBar != null);
+
+		_disabledOverlay.gameObject.SetActive (!_purchaseOption.IsReady || !_purchaseOption.HasSufficientFunds);
 
 		var isReady = _purchaseOption.IsReady;
 		if (isReady == _isShowingCooldown) {
@@ -70,7 +89,7 @@ public class BuyUnitButton : MonoBehaviour {
 
 	
 	void OnMouseDown() {
-		if (!_purchaseOption.IsReady) {
+		if (!_purchaseOption.IsReady || !_purchaseOption.HasSufficientFunds) {
 			return;
 		}
 
