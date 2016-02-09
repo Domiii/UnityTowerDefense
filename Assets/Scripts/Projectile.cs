@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class Projectile : MonoBehaviour {
@@ -33,7 +33,7 @@ public class Projectile : MonoBehaviour {
 		if (target != null && target.CanBeAttacked && FactionManager.AreHostile (gameObject, target.gameObject)) {
 			var damageInfo = new DamageInfo { 
 				Value = Random.Range(DamageMin, DamageMax),
-				SourceFaction = FactionManager.GetFaction(gameObject)
+				SourceFactionType = FactionManager.GetFactionType(gameObject)
 			};
 			target.Damage(damageInfo);
 			Destroy (gameObject);

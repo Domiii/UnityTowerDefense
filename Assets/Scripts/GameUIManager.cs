@@ -6,7 +6,6 @@ public class GameUIManager : MonoBehaviour {
 	public static GameUIManager Instance;
 
 	public Canvas MainCanvas;
-	public Text CreditText;
 	public GameObject GainCreditTextPrefab;
 	public GameObject AttackerHighlighterPrefab;
 	public GameObject DimmerPrefab;
@@ -28,8 +27,6 @@ public class GameUIManager : MonoBehaviour {
 			dimmerObject = Instantiate (DimmerPrefab);
 			dimmerObject.SetActive (false);
 		}
-
-		UpdateText ();
 	}
 	
 	// Update is called once per frame
@@ -111,10 +108,6 @@ public class GameUIManager : MonoBehaviour {
 
 
 	#region Text
-	public void UpdateText() {
-		CreditText.text = GameManager.Instance.Credits.ToString();
-	}
-
 	public void ShowGainCreditText(int credits, Vector3 position) {
 		var go = (GameObject)Instantiate (GainCreditTextPrefab, position, Quaternion.identity);
 		var text = go.GetComponent<Text> ();

@@ -3,8 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 
 public class BuyUnitButton : MonoBehaviour {
-	public BuyUnitMenu _menu;
-	public	UnitPurchaseOption _purchaseOption;
+	public BuyUnitMenu Menu;
+	public int UnitStatusIndex;
 
 	bool _isShowingCooldown;
 	Transform _cooldownOverlay;
@@ -12,26 +12,12 @@ public class BuyUnitButton : MonoBehaviour {
 	SpriteRenderer _progressBar;
 	Text _costText;
 	
-	public BuyUnitMenu Menu {
-		get {
-			return _menu;
-		}
-		set {
-			_menu = value;
-		}
-	}
-	
-	public UnitPurchaseOption PurchaseOption {
-		get {
-			return _purchaseOption;
-		}
-		set {
-			_purchaseOption = value;
-		}
+	public BuyUnitStatus Status {
+		get { return Menu.UnitManager.GetStatus(UnitStatusIndex); }
 	}
 
 	// Use this for initialization
-	void Start () {
+	public void Start () {
 		_isShowingCooldown = true;
 		_cooldownOverlay = transform.FindFirstDescendantByName("CooldownOverlay");
 		if (_cooldownOverlay == null) {
@@ -57,7 +43,7 @@ public class BuyUnitButton : MonoBehaviour {
 			return;
 		}
 
-		_costText.text = _purchaseOption.CreditCost.ToString ();
+		_costText.text = Status.Config.CreditCost.ToString ();
 
 		// sync cooldown overlay status initially
 		ToggleCooldownOverlay ();
@@ -67,9 +53,9 @@ public class BuyUnitButton : MonoBehaviour {
 	void Update () {
 		Debug.Assert (_cooldownOverlay != null && _progressBar != null);
 
-		_disabledOverlay.gameObject.SetActive (!_purchaseOption.IsReady || !_purchaseOption.HasSufficientFunds);
+		_disabledOverlay.gameObject.SetActive (!Status.CanBuy);
 
-		var isReady = _purchaseOption.IsReady;
+		var isReady = Status.IsReady;
 		if (isReady == _isShowingCooldown) {
 			ToggleCooldownOverlay();
 		}
@@ -79,20 +65,18 @@ public class BuyUnitButton : MonoBehaviour {
 	}
 
 	void ToggleCooldownOverlay() {
-		_cooldownOverlay.gameObject.SetActive(_isShowingCooldown = !_purchaseOption.IsReady);
+		_cooldownOverlay.gameObject.SetActive(_isShowingCooldown = !Status.IsReady);
 	}
 
 	void UpdateCooldownProgress() {
-		var progress = _purchaseOption.SecondsSinceLastPurchase / _purchaseOption.CooldownSeconds;
+		var progress = Status.SecondsSinceLastBuy / Status.Config.CooldownSeconds;
 		_progressBar.transform.localScale = new Vector2(progress, 1);
 	}
 
 	
 	void OnMouseDown() {
-		if (!_purchaseOption.IsReady || !_purchaseOption.HasSufficientFunds) {
-			return;
+		if (Status.CanBuy) {
+			Status.BuyUnit();
 		}
-
-		_menu.FactionManager.TryPurchaseUnit (_purchaseOption);
 	}
 }

@@ -30,17 +30,6 @@ public class GameManager : MonoBehaviour {
 
 	#region Game Variables
 	public GameStatus CurrentGameStatus = GameStatus.Running;
-
-	[SerializeField]
-	private int _credits = 100;
-
-	public int Credits {
-		get { return _credits; }
-		set {
-			_credits = value;
-			GameUIManager.Instance.UpdateText();
-		}
-	}
 	#endregion
 
 
@@ -62,15 +51,6 @@ public class GameManager : MonoBehaviour {
 		foreach (var waveGenerator in waveGenerators) {
 			((WaveGenerator)waveGenerator).StartNextWave ();
 		}
-	}
-
-	public void GainCredits(int credits, Vector3 srcPosition) {
-		Credits += credits;
-		GameUIManager.Instance.ShowGainCreditText (credits, srcPosition);
-	}
-
-	public void DeductCredits(int credits) {
-		Credits -= credits;
 	}
 	#endregion
 

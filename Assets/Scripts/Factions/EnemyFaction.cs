@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
-public class EnemyFactionManager : FactionManager {
-	public EnemyFactionManager() : base(FactionType.Enemy) {
+public class EnemyFaction : Faction {
+	public EnemyFaction() : base(FactionType.Enemy) {
 	}
 
 	// Use this for initialization

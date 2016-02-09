@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PlayerFactionManager : FactionManager {
+public class PlayerFaction : Faction {
 
 
-	public PlayerFactionManager() : base(FactionType.Player) {
+	public PlayerFaction() : base(FactionType.Player) {
 	}
 
 	// Use this for initialization

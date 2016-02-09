@@ -7,10 +7,11 @@ public class HasLoot : MonoBehaviour {
 	private Text _lootText;
 
 	void OnDeath(DamageInfo damageInfo) {
-		if (damageInfo.SourceFaction == FactionType.Player) {
-			// give credits to player
+		var faction = FactionManager.GetFaction(damageInfo.SourceFactionType);
+		if (faction != null) {
+			// give credits to killer
 			var lootCredits = Random.Range (MinLootCredits, MaxLootCredits);
-			GameManager.Instance.GainCredits (lootCredits, transform.position);
+			faction.GainCredits (lootCredits, transform.position);
 		}
 	}
 }

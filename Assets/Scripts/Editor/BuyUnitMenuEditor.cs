@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using System.Collections;
@@ -109,14 +109,14 @@ public class BuyUnitMenuEditor : Editor {
 		btn.transform.Translate (new Vector2(xOffset + w * index, 0));
 	}
 
-	void CreateButton(int index, UnitPurchaseOption purchaseOption) {
+	void CreateButton(int index, BuyUnitStatus status) {
 		var menu = (BuyUnitMenu)target;
 
 		// create button
 		var btn = (GameObject)PrefabUtility.InstantiatePrefab (menu.ButtonPrefab);
 		var btnSettings = btn.GetComponent<BuyUnitButton> ();
 		btnSettings.Menu = menu;
-		btnSettings.PurchaseOption = purchaseOption;
+		btnSettings.UnitStatusIndex = index;
 
 		// add button to pivot point in menu canvas
 		btn.transform.SetParent (menu.transform, false);
@@ -131,7 +131,7 @@ public class BuyUnitMenuEditor : Editor {
 			// create preview image
 			var previewRenderer = previewObject.GetComponent<SpriteRenderer> ();
 			var previewBounds = previewRenderer.bounds;
-			previewRenderer.sprite = CreateUnitPreview(index, purchaseOption.UnitPrefab, previewBounds);
+			previewRenderer.sprite = CreateUnitPreview(index, status.Config.UnitPrefab, previewBounds);
 			
 			// resize (make sure, new sprite fills out the entire space)
 			var previewSize = previewBounds.max - previewBounds.min;
@@ -142,14 +142,15 @@ public class BuyUnitMenuEditor : Editor {
 		
 		// finally, scale then move to correct position
 		MoveAndScaleButton (btn, index);
+
+		btnSettings.Start ();
 	}
 
-	void CreateButtons() {
+	void CreateButtons(BuyUnitStatus[] statuses) {
 		var menu = (BuyUnitMenu)target;
 
 		var buttonPrefab = menu.ButtonPrefab;
 		var buttonPrefabRenderer = buttonPrefab != null ? buttonPrefab.GetComponent<SpriteRenderer> () : null;
-		var purchaseOptions = menu.FactionManager.PurchaseOptions;
 		
 		if (menu.GetComponent<RectTransform> () == null) {
 			Debug.LogError("BuyUnitMenu is missing RectTransform component. Make sure it is a canvas!", this);
@@ -161,13 +162,13 @@ public class BuyUnitMenuEditor : Editor {
 			return;
 		}
 
-		if (purchaseOptions == null) {
+		if (statuses == null) {
 			return;
 		}
 
-		for (int i = 0; i < purchaseOptions.Length; ++i) {
-			var purchaseOption = purchaseOptions [i];
-			CreateButton (i, purchaseOption);
+		for (int i = 0; i < statuses.Length; ++i) {
+			var status = statuses [i];
+			CreateButton (i, status);
 		}
 	}
 
@@ -185,23 +186,30 @@ public class BuyUnitMenuEditor : Editor {
 		var menu = (BuyUnitMenu)target;
 
 		if (GUILayout.Button ("Create Buttons")) {
-			// make sure, all previews are ready
-			var purchaseOptions = menu.FactionManager.PurchaseOptions;
-			for (int i = 0; i < purchaseOptions.Length; ++i) {
-				var purchaseOption = purchaseOptions [i];
-				AssetPreview.GetAssetPreview (purchaseOption.UnitPrefab);
-			}
+			var statuses = menu.UnitManager.ResetUnitStatuses();
 
 			// wait until all asset previews are ready
-			while (AssetPreview.GetAssetPreview (purchaseOptions.Last().UnitPrefab) == null) {
+			int readyCount;
+			do {
+				readyCount = 0;
+				for (int i = 0; i < statuses.Length; ++i) {
+					var status = statuses [i];
+					var result = AssetPreview.GetAssetPreview (status.Config.UnitPrefab);
+					if (result != null) {
+						++readyCount;
+					}
+				}
 				System.Threading.Thread.Sleep(0);
+				Debug.Log ("Waiting for assets...");
 			}
+			while (readyCount < statuses.Length);
+
 
 			// delete all existing children
 			DeleteAllButtons();
 
 			// create buttons
-			CreateButtons();
+			CreateButtons(statuses);
 		}
 		
 		if (GUILayout.Button ("Delete Buttons")) {
