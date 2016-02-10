@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 
@@ -44,7 +44,7 @@ public class SortHelperEditor : Editor {
 		EditorGUILayout.EndHorizontal();
 
 		if (selectedIndex >= 0) {
-			sortHelper.SetSortingOptions (ids [selectedIndex], sortHelper.sortingOrder);
+			sortHelper.SetSortingOptions (ids [selectedIndex], sortHelper.SortingOrder);
 
 			EditorUtility.SetDirty (sortHelper);
 		}

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 namespace Spells {
 	public class SpellTargetCollection {
 		SpellTargetConfig config;
-		
 		List<GameObject> targets;
 		
 		public Transform TargetTransform;

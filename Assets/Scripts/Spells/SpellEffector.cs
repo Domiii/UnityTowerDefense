@@ -2,15 +2,14 @@
 using System.Collections;
 
 namespace Spells {
-	public class SpellEffector {
-		protected SpellTargetCollection _targets;
+	public class SpellEffector : MonoBehaviour {
+		public SpellTargetCollection Targets;
 
 		public SpellEffector() {
-			_targets = new SpellTargetCollection ();
 		}
 
 		public void ApplyEffects(SpellEffectCollection effects) {
-			_targets.FindTargets (effects.Targets);
+			Targets.FindTargets (effects.Targets);
 
 			foreach (var effect in effects) {
 				ApplyEffect(effect);

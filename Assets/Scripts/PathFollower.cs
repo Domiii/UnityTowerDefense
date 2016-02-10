@@ -9,15 +9,15 @@ public class PathFollower : MonoBehaviour {
 	public WavePath Path;
 	public WavePath.FollowDirection PathDirection;
 
-	float _maxDistanceToGoal;
-	Wave _wave;
-	IEnumerator<Transform> _pathIterator;
+	float maxDistanceToGoal;
+	Wave wave;
+	IEnumerator<Transform> pathIterator;
 	
 	public void InitFollower(Wave wave) {
 		Debug.Assert (wave != null);
 		
-		_wave = wave;
-		Path = _wave.WaveGenerator.Path;
+		this.wave = wave;
+		Path = wave.WaveGenerator.Path;
 		
 		RestartPath ();
 	}
@@ -49,12 +49,12 @@ public class PathFollower : MonoBehaviour {
 	}
 
 	void RestartPath() {
-		if (_wave != null) {
-			PathDirection = _wave.WaveGenerator.PathDirection;
+		if (wave != null) {
+			PathDirection = wave.WaveGenerator.PathDirection;
 		}
 		if (Path != null) {
-			_pathIterator = Path.GetPathEnumerator (PathDirection);
-			_pathIterator.MoveNext ();
+			pathIterator = Path.GetPathEnumerator (PathDirection);
+			pathIterator.MoveNext ();
 		}
 	}
 
@@ -63,10 +63,10 @@ public class PathFollower : MonoBehaviour {
 		// compute a radius estimate to determine how close object needs to be to target
 		var spriteRenderer = GetComponent<SpriteRenderer>();
 		if (spriteRenderer != null) {
-			_maxDistanceToGoal = Mathf.Sqrt (Vector2.Distance(spriteRenderer.bounds.min, spriteRenderer.bounds.max))/2;
+			maxDistanceToGoal = Mathf.Sqrt (Vector2.Distance(spriteRenderer.bounds.min, spriteRenderer.bounds.max))/2;
 		} else {
 			// PathFollower on non-sprite object not properly supported currently
-			_maxDistanceToGoal = 1;
+			maxDistanceToGoal = 1;
 		}
 
 		RestartPath ();
@@ -79,11 +79,11 @@ public class PathFollower : MonoBehaviour {
 
 
 	public void MoveAlongPath() {
-		if (_pathIterator == null || _pathIterator.Current == null)
+		if (pathIterator == null || pathIterator.Current == null)
 			return;
 		
 		// move towards current target
-		var targetPosition = _pathIterator.Current.position;
+		var targetPosition = pathIterator.Current.position;
 		var rigidbody = GetComponent<Rigidbody2D> ();
 		var direction = targetPosition - transform.position;
 		direction.Normalize ();
@@ -94,9 +94,9 @@ public class PathFollower : MonoBehaviour {
 		
 		// check if we reached target
 		var distanceSquared = (transform.position - targetPosition).sqrMagnitude;
-		if (distanceSquared < _maxDistanceToGoal * _maxDistanceToGoal) {
+		if (distanceSquared < maxDistanceToGoal * maxDistanceToGoal) {
 			// we arrived at current target -> Choose next target
-			_pathIterator.MoveNext();
+			pathIterator.MoveNext();
 //			if (_pathIterator.Current == null) {
 //				// arrived at final waypoint
 //				OnReachedGoal();
@@ -106,7 +106,7 @@ public class PathFollower : MonoBehaviour {
 
 	void OnCollisionEnter2D(Collision2D col) {
 		var pathFollower = col.gameObject.GetComponent<PathFollower> ();
-		if (pathFollower != null && pathFollower._wave != _wave) {
+		if (pathFollower != null && pathFollower.wave != wave) {
 			// don't let these two collide
 			Physics2D.IgnoreCollision(GetComponent<Collider2D>(), col.collider, true);
 		}

@@ -26,7 +26,10 @@ public class GameManager : MonoBehaviour {
 		Finished
 	}
 
-	public static GameManager Instance;
+	public static GameManager Instance {
+		get;
+		private set;
+	}
 
 	#region Game Variables
 	public GameStatus CurrentGameStatus = GameStatus.Running;

@@ -13,7 +13,7 @@ public class Wave {
 	/// </summary>
 	public List<PathFollower> Enemies = new List<PathFollower>();
 
-	float _lastUpdate;
+	float lastUpdate;
 
 	public Wave(WaveGenerator waveGenerator) {
 		WaveGenerator = waveGenerator;
@@ -36,7 +36,7 @@ public class Wave {
 	public void Update() {
 		if (!HaveAllEnemiesSpawned) {
 			var now = Time.time;
-			var timeSinceLastUpdate = now - _lastUpdate;
+			var timeSinceLastUpdate = now - lastUpdate;
 			
 			if (timeSinceLastUpdate >= WaveTemplate.DelayBetweenEnemies) {
 				WaveGenerator.SpawnNextEnemy(this);
@@ -47,6 +47,6 @@ public class Wave {
 	
 	public void ResetTimer() {
 		// reset timer
-		_lastUpdate = Time.time;
+		lastUpdate = Time.time;
 	}
 }

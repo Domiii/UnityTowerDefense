@@ -6,10 +6,10 @@ public class Attacker : MonoBehaviour {
 	public float ShootDelaySeconds = 1;
 	public float AttackRadius = 30.0f;
 
-	Collider2D[] _collidersInRange = new Collider2D[128];
-	Unit _currentTarget;
-	bool _isAttacking;
-	float _lastShotTime;
+	Collider2D[] collidersInRange = new Collider2D[128];
+	Unit currentTarget;
+	bool isAttacking;
+	float lastShotTime;
 
 	SpriteRenderer _highlighter;
 
@@ -22,7 +22,7 @@ public class Attacker : MonoBehaviour {
 			return;
 		}
 
-		_isAttacking = false;
+		isAttacking = false;
 		//lastShotTime = Time.time;
 	}
 	
@@ -30,8 +30,8 @@ public class Attacker : MonoBehaviour {
 	void Update () {
 		AimAndShoot ();
 
-		if (_currentTarget != null) {
-			var dir = (_currentTarget.transform.position - transform.position).normalized * AttackRadius;
+		if (currentTarget != null) {
+			var dir = (currentTarget.transform.position - transform.position).normalized * AttackRadius;
 			Debug.DrawRay (transform.position, dir);
 		}
 
@@ -54,7 +54,7 @@ public class Attacker : MonoBehaviour {
 
 	public bool HasValidTarget {
 		get {
-			return _currentTarget != null && IsValidTarget(_currentTarget);
+			return currentTarget != null && IsValidTarget(currentTarget);
 		}
 	}
 
@@ -63,9 +63,9 @@ public class Attacker : MonoBehaviour {
 	}
 
 	Unit FindTarget() {
-		var nResults = Physics2D.OverlapCircleNonAlloc(transform.position, AttackRadius, _collidersInRange);
+		var nResults = Physics2D.OverlapCircleNonAlloc(transform.position, AttackRadius, collidersInRange);
 		for (var i = 0; i < nResults; ++i) {
-			var collider = _collidersInRange[i];
+			var collider = collidersInRange[i];
 			var unit = collider.GetComponent<Unit> ();
 			if (unit != null && IsValidTarget(unit)) {
 				return unit;
@@ -78,7 +78,7 @@ public class Attacker : MonoBehaviour {
 	
 	bool UpdateCurrentTarget() {
 		// find new target
-		_currentTarget = FindTarget();
+		currentTarget = FindTarget();
 		
 		if (HasValidTarget) {
 			return true;
@@ -170,7 +170,7 @@ public class Attacker : MonoBehaviour {
 		
 		//transform.LookAt (CurrentTarget.transform.position);
 
-		transform.rotation = GetRotationToward(_currentTarget.transform);
+		transform.rotation = GetRotationToward(currentTarget.transform);
 	}
 
 	#region Attack
@@ -181,31 +181,31 @@ public class Attacker : MonoBehaviour {
 		
 		if (!UpdateCurrentTarget ()) {
 			// no valid target
-			if (_isAttacking) {
+			if (isAttacking) {
 				// we have stopped attacking
 				StopAttacking ();
 			}
 		} else {
-			if (!_isAttacking) {
+			if (!isAttacking) {
 				// we have started attacking
 				StartAttacking ();
 			}
 
 
-			var delay = Time.time - _lastShotTime;
+			var delay = Time.time - lastShotTime;
 			if (delay < ShootDelaySeconds) {
 				// still on cooldown
 				return;
 			}
 			
 			RotateTowardTarget();
-			ShootAt (_currentTarget);
+			ShootAt (currentTarget);
 		}
 	}
 	
 	public void ShootAt(Unit target) {
 		// create a new projectile
-		var projectileObj = (GameObject)Instantiate(ProjectilePrefab, transform.position, GetRotationToward(_currentTarget.transform));
+		var projectileObj = (GameObject)Instantiate(ProjectilePrefab, transform.position, GetRotationToward(currentTarget.transform));
 
 		// set faction
 		FactionManager.SetFaction (projectileObj, gameObject);
@@ -218,16 +218,16 @@ public class Attacker : MonoBehaviour {
 		rigidbody.velocity = direction * projectile.Speed;
 
 		// reset shoot time
-		_lastShotTime = Time.time;
+		lastShotTime = Time.time;
 	}
 	
 	void StartAttacking() {
-		_isAttacking = true;
+		isAttacking = true;
 		SendMessage ("OnAttackStart", SendMessageOptions.DontRequireReceiver);
 	}
 	
 	void StopAttacking() {
-		_isAttacking = false;
+		isAttacking = false;
 		SendMessage ("OnAttackStop", SendMessageOptions.DontRequireReceiver);
 	}
 	#endregion

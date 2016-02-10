@@ -4,7 +4,7 @@ using System.Collections;
 
 public class HasLoot : MonoBehaviour {
 	public int MinLootCredits, MaxLootCredits;
-	private Text _lootText;
+	private Text lootText;
 
 	void OnDeath(DamageInfo damageInfo) {
 		var faction = FactionManager.GetFaction(damageInfo.SourceFactionType);

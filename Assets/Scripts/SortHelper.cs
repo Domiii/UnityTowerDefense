@@ -3,14 +3,14 @@ using System.Collections;
 
 [RequireComponent(typeof(ParticleSystem))]
 public class SortHelper : MonoBehaviour {
-	public int sortingOrder = 0;
-	private int _sortingLayer = 0;
+	public int SortingOrder = 0;
+	private int sortingLayer = 0;
 
 	public int SortingLayerId {
 		get {
 			var renderer = GetComponent<Renderer> ();
 			if (renderer == null) {
-				return _sortingLayer;
+				return sortingLayer;
 			}
 			return renderer.sortingLayerID;
 		}
@@ -20,7 +20,7 @@ public class SortHelper : MonoBehaviour {
 	/// Recursively applies the options to the object and all its children.
 	/// </summary>
 	public void SetSortingOptions(int sortingLayerId, int sortingOrder) {
-		_sortingLayer = sortingLayerId;
+		sortingLayer = sortingLayerId;
 		SetSortingOptionsRecurse (transform, sortingLayerId, sortingOrder);
 	}
 
