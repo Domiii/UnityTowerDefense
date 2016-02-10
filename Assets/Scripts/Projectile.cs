@@ -27,7 +27,7 @@ public class Projectile : MonoBehaviour {
 		}
 	}
 	
-	void OnTriggerEnter2D(Collider2D col) {
+	void OnProjectileHit(Collider2D col) {
 		// when colliding with Unit -> Cause damage
 		var target = col.gameObject.GetComponent<Unit>();
 		if (target != null && target.CanBeAttacked && FactionManager.AreHostile (gameObject, target.gameObject)) {

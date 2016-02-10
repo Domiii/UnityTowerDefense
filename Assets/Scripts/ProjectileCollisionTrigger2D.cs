@@ -8,7 +8,7 @@ using System.Linq;
 /// Uses raycasting to trigger OnTriggerEnter2D events when hitting something.
 /// </summary>
 /// <see cref="http://stackoverflow.com/a/29564394/2228771"/>
-public class FastTriggerEnter2D : MonoBehaviour {
+public class ProjectileCollisionTrigger2D : MonoBehaviour {
 	public enum TriggerTarget {
 		None = 0,
 		Self = 1,
@@ -20,7 +20,15 @@ public class FastTriggerEnter2D : MonoBehaviour {
 	/// The layers that can be hit by this object.
 	/// Defaults to "Everything" (-1).
 	/// </summary>
-	public LayerMask layerMask = -1;
+	public LayerMask hitLayers = -1;
+
+	/// <summary>
+	/// The name of the message to be sent on hit.
+	/// You generally want to change this, especially if you want to let the projectile apply a force (`momentumTransferFraction` greater 0).
+	/// If you do not change this, the physics engine (when it happens to pick up the collision) 
+	/// will send an extra message, prior to this component being able to. This might cause errors or unexpected behavior.
+	/// </summary>
+	public string MessageName = "OnTriggerEnter2D";
 
 	/// <summary>
 	/// Where to send the hit event message to.
@@ -61,6 +69,7 @@ public class FastTriggerEnter2D : MonoBehaviour {
 	void FixedUpdate()
 	{
 		//have we moved more than our minimum extent? 
+		var origPosition = transform.position;
 		Vector2 movementThisStep = (Vector2)transform.position - previousPosition;
 		float movementSqrMagnitude = movementThisStep.sqrMagnitude;
 		
@@ -68,19 +77,19 @@ public class FastTriggerEnter2D : MonoBehaviour {
 			float movementMagnitude = Mathf.Sqrt(movementSqrMagnitude);
 			
 			//check for obstructions we might have missed 
-			RaycastHit2D[] hitsInfo = Physics2D.RaycastAll(previousPosition, movementThisStep, movementMagnitude, layerMask.value);
+			RaycastHit2D[] hitsInfo = Physics2D.RaycastAll(previousPosition, movementThisStep, movementMagnitude, hitLayers.value);
 			
 			//Going backward because we want to look at the first collisions first. Because we want to destroy the once that are closer to previous position
 			for (int i = 0; i < hitsInfo.Length; ++i) {
 				var hitInfo = hitsInfo[i];
-				if (hitInfo && hitInfo.rigidbody != myRigidbody) {
+				if (hitInfo && hitInfo.collider != myCollider) {
 					// apply force
-					if (momentumTransferFraction != 0) {
+					if (hitInfo.rigidbody && momentumTransferFraction != 0) {
 						// When using impulse mode, the force argument is actually the amount of instantaneous momentum transfered.
 						// Quick physics refresher: F = dp / dt = m * dv / dt
 						// Note: dt is the amount of time traveled (which is the time of the current frame and is taken care of internally, when using impulse mode)
 						// For more info, go here: http://forum.unity3d.com/threads/rigidbody2d-forcemode-impulse.213397/
-						var dv = movementThisStep;
+						var dv = myRigidbody.velocity;
 						var m = myRigidbody.mass;
 						var dp = dv * m;
 						var impulse = momentumTransferFraction * dp;
@@ -93,17 +102,20 @@ public class FastTriggerEnter2D : MonoBehaviour {
 						}
 					}
 
+					// move this object to point of collision
+					transform.position = hitInfo.point;
+
 					// send hit messages
-					if (((int)triggerTarget & (int)TriggerTarget.Other) != 0) {
-						hitInfo.collider.SendMessage("OnTriggerEnter2D", myCollider, SendMessageOptions.DontRequireReceiver);
+					if (((int)triggerTarget & (int)TriggerTarget.Other) != 0 && hitInfo.collider.isTrigger) {
+						hitInfo.collider.SendMessage(MessageName, myCollider, SendMessageOptions.DontRequireReceiver);
 					}
 					if (((int)triggerTarget & (int)TriggerTarget.Self) != 0) {
-						SendMessage("OnTriggerEnter2D", hitInfo.collider, SendMessageOptions.DontRequireReceiver);
+						SendMessage(MessageName, hitInfo.collider, SendMessageOptions.DontRequireReceiver);
 					}
 				}
 			}
 		}
-		
-		previousPosition = transform.position;
+
+		previousPosition = transform.position = origPosition;
 	}
 }
