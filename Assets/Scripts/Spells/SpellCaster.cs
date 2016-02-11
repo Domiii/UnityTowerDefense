@@ -15,11 +15,6 @@ namespace Spells {
 		/// </summary>
 		float _lastCastTime;
 
-		public SpellCast CurrentSpellCast {
-			get;
-			private set;
-		}
-
 		/// <summary>
 		/// Caster can cast spell when not on cooldown
 		/// </summary>
@@ -34,13 +29,13 @@ namespace Spells {
 			// TODO: interrupt current spell cast (if any)
 		}
 		
-		public bool TryCastSpell() {
-			return TryCastSpell (Spell);
+		public bool TryCastSpell(Transform initialTarget, ref Vector3 initialTargetPosition) {
+			return TryCastSpell (Spell, initialTarget, ref initialTargetPosition);
 		}
 		
-		public bool TryCastSpell(Spell spell) {
-			// TODO: Cast spell if possible
-			return false;
+		public bool TryCastSpell(Spell spell, Transform initialTarget, ref Vector3 initialTargetPosition) {
+			var cast = SpellGameObjectManager.Instance.AddComponent<SpellCast> (gameObject);
+			return cast.StartCasting (gameObject, spell, initialTarget, ref initialTargetPosition);
 		}
 	}
 

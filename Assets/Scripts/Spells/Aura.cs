@@ -2,11 +2,8 @@
 using System.Collections;
 
 namespace Spells {
-	public class Aura : SpellPhase {
-
-		protected override void Start() {
-			base.Start ();
-		}
+	public class Aura : SpellPhaseContext {
+		// TODO: Add, Pulse, then Remove AuraEffects
 	}
 
 }

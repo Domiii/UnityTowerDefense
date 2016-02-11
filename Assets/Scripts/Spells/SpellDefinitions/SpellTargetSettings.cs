@@ -12,7 +12,7 @@ namespace Spells {
 		// randomly selected unit in spell range
 		RandomUnit,
 
-		// point randomly selected in front of spell cast source, between min and max range
+		// point in front of current spell phase object, randomly selected between min and max range
 		PointInFrontOfSource
 	}
 
@@ -24,14 +24,19 @@ namespace Spells {
 		// UnitsInCollider
 	}
 
+	public enum Affiliation {
+		Any = 0,
+		Friendly,
+		Hostile
+	}
+
 	[System.Serializable]
-	public class SpellTargetConfig {
-		public enum Affiliation {
-			Any = 0,
-			Friendly,
-			Hostile
-		}
-		
+	public class SpellTargetSettings {
+
+		// CastPhase (while casting; fallback phase owner = caster)
+		// ProjectilePhase (while projectile in flight; fallback phase owner = null, must have prefab)
+		// Impact (after projectile hit; fallback phase owner = projectile, or caster (if it has no projectile))
+
 		public SpellTargetWhere Where;
 		public SpellTargetWhat What;
 		public float MinRange, MaxRange;

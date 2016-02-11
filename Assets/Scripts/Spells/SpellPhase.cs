@@ -1,47 +1,102 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Spells {
-	public class SpellPhase : SpellEffector {
-		public SpellPhaseTemplate Template;
 
-		internal bool running;
-		int nPulses;
-
-		public SpellPhase() {
+	public abstract class SpellPhase : ISpellObject {
+		public SpellCastContext SpellCastContext {
+			get;
+			private set;
+		}
+		
+		public SpellPhaseTemplate Template {
+			get;
+			private set;
 		}
 
-		protected virtual void Start() {
-			running = true;
-			nPulses = 0;
-			ApplyEffects (Template.StartEffects);
-
-			StartCoroutine (KeepPulsing());
-		}
-
-		IEnumerator KeepPulsing() {
-			while (true) {
-				yield return new WaitForSeconds(Template.RepeatDelay);
-				if (!running) {
-					break;
-				}
-				
-				Pulse ();
-				++nPulses;
-				
-				if (Template.MaxRepetitions > 0 && nPulses >= Template.MaxRepetitions) {
-					running = false;
-				}
-			}
-		}
-
-		public void Pulse() {
-			ApplyEffects (Template.RepeatEffects);
-		}
-
-		public void End() {
-			ApplyEffects (Template.EndEffects);
+		public abstract bool IsActive {
+			get;
 		}
 	}
+	
+	public class CastPhase : SpellPhase {
+		public SpellPhaseContext Context {
+			get;
+			internal set;
+		}
+		
+		public override bool IsActive {
+			get { return Context != null && !Context.HasEnded; }
+		}
+		
+		internal void NotifyStarted(SpellPhaseContext context) {
+			Context = context;
+		}
+		
+		internal void NotifyFinished(SpellPhaseContext context) {
+			Context = null;
+		}
+	}
+
+	public class MultiContextPhase : SpellPhase {
+		SpellPhaseContext[] contexts;
+
+		public int ContextCount {
+			get;
+			private set;
+		}
+
+		public int ActiveContextCount {
+			get;
+			private set;
+		}
+
+		public SpellPhaseContext[] Contexts {
+			get {
+				return contexts;
+			}
+			private set {
+				contexts = value;
+			}
+		}
+		
+		public override bool IsActive {
+			get { return ActiveContextCount > 0; }
+		}
+
+		internal void InitializePhase() {
+			ActiveContextCount = 0;
+			ContextCount = 0;
+		}
+
+		internal void NotifyStarted(SpellPhaseContext context) {
+			++ActiveContextCount;
+			++ContextCount;
+
+			if (Contexts == null) {
+				Contexts = new SpellPhaseContext[8];
+			}
+			else {
+				if (ContextCount > contexts.Length) {
+					System.Array.Resize(ref contexts, ContextCount);
+				}
+			}
+			context.index = ContextCount - 1;
+			Contexts [context.index] = context;
+		}
+
+		internal void NotifyFinished(SpellPhaseContext context) {
+			--ActiveContextCount;
+			Contexts [context.index] = null;
+		}
+	}
+	
+	public class ProjectilePhase : MultiContextPhase {
+	}
+	
+	public class ImpactPhase : MultiContextPhase {
+	}
+
 
 }

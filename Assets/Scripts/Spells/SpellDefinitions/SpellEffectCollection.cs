@@ -7,7 +7,7 @@ namespace Spells {
 	[System.Serializable]
 	public class SpellEffectCollection : IEnumerable<SpellEffect> {
 		public SpellEffect[] Effects;
-		public SpellTargetConfig Targets;
+		public SpellTargetSettings TargetSettings;
 
 		public IEnumerator<SpellEffect> GetEnumerator() {
 			return Effects.AsEnumerable().GetEnumerator();
