@@ -32,9 +32,11 @@ namespace Spells {
 		
 		internal void NotifyStarted(SpellPhaseContext context) {
 			Context = context;
+			context.StartPhase ();
 		}
 		
-		internal void NotifyFinished(SpellPhaseContext context) {
+		internal void NotifyFinished(bool interrupted) {
+			Context.EndPhase (interrupted);
 			Context = null;
 		}
 	}
@@ -84,10 +86,13 @@ namespace Spells {
 			}
 			context.index = ContextCount - 1;
 			Contexts [context.index] = context;
+
+			context.StartPhase ();
 		}
 
 		internal void NotifyFinished(SpellPhaseContext context) {
 			--ActiveContextCount;
+			context.EndPhase (false);
 			Contexts [context.index] = null;
 		}
 	}

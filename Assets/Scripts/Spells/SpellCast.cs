@@ -5,10 +5,11 @@ using System.Collections.Generic;
 
 namespace Spells {
 
-	// TODO: SpellEffectCollection and AuraEffectCollection must have separate target collections? Probably need more than one collection per phase after all.
+	// TODO: Auras need completely different handling from SpellCast: Apply to target, then create a handler for each, then propagate everything
 	// TODO: Let SpellCast.Update run CastPhase timer to call EndCastPhase()
 	// TODO: Notify SpellCast on context updates (projectile impact, context destroyed)
-	// TODO: Notify Aura on context updates (destroyed)
+	// TODO: AreaAura (https://github.com/WCell/WCell/blob/master/Services/WCell.RealmServer/Spells/Auras/AreaAura.cs)
+	//			(" An AreaAura either applies AreaAura-Effects to everyone in a radius around its center or repeatedly triggers a spell on everyone around it.")
 
 	public class SpellCast : MonoBehaviour, ISpellObject {
 
@@ -35,6 +36,27 @@ namespace Spells {
 			get;
 			private set;
 		}
+		
+		public float StartTime {
+			get;
+			private set;
+		}
+
+		public float TimeSinceStart {
+			get {
+				return Time.time - StartTime;
+			}
+		}
+
+		public float CastTimeLeft {
+			get {
+				if (CastPhase == null) {
+					return 0;
+				}
+				var castTime = ((CastPhaseTemplate)CastPhase.Template).CastTime;
+				return castTime - TimeSinceStart;
+			}
+		}
 
 		public bool IsCasting {
 			get { return CastPhase != null && !CastPhase.Context.HasEnded; }
@@ -45,11 +67,31 @@ namespace Spells {
 			SpellCastContext.Spell = spell;
 			SpellCastContext.InitialTarget = InitialTarget;
 			SpellCastContext.InitialTargetPosition = initialTargetPosition;
-			//spellTargets
+
+			StartTime = Time.time;
 
 			StartCastPhase ();
 
 			return true;
+		}
+
+		/// <summary>
+		/// Interrupt spell cast if still casting
+		/// </summary>
+		public void Interrupt() {
+			if (IsCasting) {
+				// hold the presses!
+				CastPhase.NotifyFinished(true);
+			}
+		}
+
+		void Update() {
+			if (IsCasting) {
+				if (CastTimeLeft <= 0) {
+					// finished casting
+					EndCastPhase();
+				}
+			}
 		}
 
 		void StartCastPhase() {
@@ -67,7 +109,7 @@ namespace Spells {
 
 		void EndCastPhase() {
 			if (IsCasting) {
-				CastPhase.NotifyFinished(CastPhase.Context); 
+				CastPhase.NotifyFinished(false); 
 			}
 		}
 

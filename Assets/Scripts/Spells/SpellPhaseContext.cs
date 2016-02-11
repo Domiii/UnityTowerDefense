@@ -27,6 +27,7 @@ namespace Spells {
 		protected int pulseCount;
 		protected Dictionary<string, object> spellPhaseData;
 		protected internal int index;
+		protected Aura aura;
 		
 		public SpellPhaseContext() {
 			Targets = new SpellTargetCollection ();
@@ -86,16 +87,14 @@ namespace Spells {
 			hasEnded = false;
 			pulseCount = 0;
 
+			// apply aura
+			if (Phase.Template.AuraTemplate != null) {
+				aura = Aura.AddAura(gameObject, Phase.Template.AuraTemplate, 0);
+			}
+
 			// apply StartEffects
 			if (Phase.Template.StartEffects != null) {
 				ApplySpellEffects (Phase.Template.StartEffects);
-			}
-
-			// start AuraEffects
-			if (Phase.Template.AuraEffects != null) {
-				foreach (var effect in Phase.Template.AuraEffects) {
-					effect.OnAuraStart(this);
-				}
 			}
 
 			// start pulsing
@@ -105,10 +104,16 @@ namespace Spells {
 			}
 		}
 		
-		public void EndPhase() {
-			if (Phase.Template.EndEffects != null) {
+		public void EndPhase(bool interrupted) {
+			if (!interrupted && Phase.Template.EndEffects != null) {
 				ApplySpellEffects (Phase.Template.EndEffects);
 			}
+
+			if (aura != null) {
+				aura.Remove();
+				aura = null;
+			}
+
 			isPulsing = false;
 			hasEnded = true;
 		}

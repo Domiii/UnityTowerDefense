@@ -5,6 +5,8 @@ namespace Spells {
 	public class SpellCaster : MonoBehaviour {
 		public Spell Spell;
 
+		public SpellCast SpellCast;
+
 		/// <summary>
 		/// How often this spell caster can cast the spell.
 		/// </summary>
@@ -34,8 +36,16 @@ namespace Spells {
 		}
 		
 		public bool TryCastSpell(Spell spell, Transform initialTarget, ref Vector3 initialTargetPosition) {
-			var cast = SpellGameObjectManager.Instance.AddComponent<SpellCast> (gameObject);
-			return cast.StartCasting (gameObject, spell, initialTarget, ref initialTargetPosition);
+			SpellCast = SpellGameObjectManager.Instance.AddComponent<SpellCast> (gameObject);
+			return SpellCast.StartCasting (gameObject, spell, initialTarget, ref initialTargetPosition);
+		}
+
+		void Update() {
+			if (SpellCast != null && !SpellCast.IsCasting) {
+				// finished casting
+				SpellCast = null;
+				_lastCastTime = Time.time;
+			}
 		}
 	}
 

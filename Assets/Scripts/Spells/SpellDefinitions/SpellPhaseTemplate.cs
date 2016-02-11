@@ -17,7 +17,7 @@ namespace Spells {
 		/// <summary>
 		/// AuraEffects to be applied to the PhaseObject during the phase
 		/// </summary>
-		public AuraEffectCollection AuraEffects;
+		public AuraTemplate AuraTemplate;
 
 		public float RepeatDelay;
 		public int MaxRepetitions = 0;
