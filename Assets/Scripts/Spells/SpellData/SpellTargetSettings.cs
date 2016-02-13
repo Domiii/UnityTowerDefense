@@ -31,7 +31,7 @@ namespace Spells {
 	}
 
 	[System.Serializable]
-	public class SpellTargetSettings {
+	public class SpellTargetSettings : ScriptableObject {
 
 		// CastPhase (while casting; fallback phase owner = caster)
 		// ProjectilePhase (while projectile in flight; fallback phase owner = null, must have prefab)

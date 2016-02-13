@@ -18,31 +18,46 @@ namespace Spells {
 		public abstract bool IsActive {
 			get;
 		}
+
+		protected internal abstract void NotifyStart (SpellPhaseContext context);
+
+		public override string ToString () {
+			return Template.Name;
+		}
 	}
 	
 	public class CastPhase : SpellPhase {
+		bool isActive;
+
 		public SpellPhaseContext Context {
 			get;
 			internal set;
 		}
-		
+
 		public override bool IsActive {
-			get { return Context != null && !Context.HasEnded; }
+			get {
+				return isActive;
+			}
 		}
 		
-		internal void NotifyStarted(SpellPhaseContext context) {
+		protected internal override void NotifyStart(SpellPhaseContext context) {
 			Context = context;
-			context.StartPhase ();
+			isActive = true;
+			context.NotifyStart ();
 		}
 		
-		internal void NotifyFinished(bool interrupted) {
-			Context.EndPhase (interrupted);
+		protected internal void NotifyEnd() {
+			if (Context != null) {
+				Context.NotifyEnd ();
+			}
+			isActive = false;
 			Context = null;
 		}
 	}
 
 	public class MultiContextPhase : SpellPhase {
 		SpellPhaseContext[] contexts;
+		bool[] contextActiveStatuses;
 
 		public int ContextCount {
 			get;
@@ -52,6 +67,15 @@ namespace Spells {
 		public int ActiveContextCount {
 			get;
 			private set;
+		}
+
+		public bool[] ContextActiveStatuses {
+			get {
+				return contextActiveStatuses;
+			}
+			private set {
+				contextActiveStatuses = value;
+			}
 		}
 
 		public SpellPhaseContext[] Contexts {
@@ -72,28 +96,37 @@ namespace Spells {
 			ContextCount = 0;
 		}
 
-		internal void NotifyStarted(SpellPhaseContext context) {
+		protected internal override void NotifyStart(SpellPhaseContext context) {
 			++ActiveContextCount;
 			++ContextCount;
 
 			if (Contexts == null) {
 				Contexts = new SpellPhaseContext[8];
+				contextActiveStatuses = new bool[8];
 			}
 			else {
 				if (ContextCount > contexts.Length) {
 					System.Array.Resize(ref contexts, ContextCount);
+					System.Array.Resize(ref contextActiveStatuses, ContextCount);
 				}
 			}
 			context.index = ContextCount - 1;
-			Contexts [context.index] = context;
+			Contexts[context.index] = context;
+			contextActiveStatuses [context.index] = true;
 
-			context.StartPhase ();
+			context.NotifyStart ();
 		}
 
-		internal void NotifyFinished(SpellPhaseContext context) {
-			--ActiveContextCount;
-			context.EndPhase (false);
-			Contexts [context.index] = null;
+		internal void NotifyEnd(int index) {
+			if (contextActiveStatuses [index]) {
+				var context = contexts [index];
+				if (context != null) {
+					context.NotifyEnd ();
+				}
+				--ActiveContextCount;
+				contextActiveStatuses [index] = false;
+				Contexts [index] = null;
+			}
 		}
 	}
 	

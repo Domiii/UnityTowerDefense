@@ -51,7 +51,7 @@ namespace Spells {
 			var go = (GameObject)Instantiate(prefab, position, rotation);
 			return go;
 		}
-
+		
 		public void Recycle(GameObject obj) {
 			// TODO: Implement GO recycling
 			GameObject.Destroy (obj);
@@ -61,6 +61,12 @@ namespace Spells {
 			where T : MonoBehaviour, ISpellObject
 		{
 			return go.AddComponent<T> ();
+		}
+		
+		public void RemoveComponent<T>(T component)
+			where T : MonoBehaviour, ISpellObject
+		{
+			Destroy (component);
 		}
 	}
 }

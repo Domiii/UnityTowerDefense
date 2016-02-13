@@ -6,7 +6,6 @@ namespace Spells {
 	/// Definition of a single aura effect.
 	/// E.g. Stun, Slow, Fast, Shield
 	/// </summary>
-	[System.Serializable]
-	public class AuraEffect {
+	public class AuraEffect : ScriptableObject {
 	}
 }

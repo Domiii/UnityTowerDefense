@@ -10,31 +10,57 @@ namespace Spells {
 			list = new List<GameObject> ();
 		}
 		
-		public SpellPhaseContext Context {
-			get;
-			private set;
-		}
-		
 		public SpellTargetSettings Settings {
 			get;
 			private set;
 		}
+		
+		public SpellPhase Phase {
+			get;
+			private set;
+		}
+		
+		public int Count
+		{
+			get { return list.Count; }
+		}
+		
+		public GameObject this [int index] {
+			get {
+				return list[index];
+			}
+			set {
+				list[index] = value;
+			}
+		}
 
-		public List<GameObject> List {
-			get { return List; }
+		public int FindTargets(SpellTargetSettings settings, SpellPhaseContext phaseContext) {
+			// TODO: Collect all matching targets
+			return 0;
 		}
 		
 		/// <summary>
 		/// </summary>
 		/// <returns><c>true</c>, if targets were found, <c>false</c> otherwise.</returns>
-		public bool FindTargets(SpellPhaseContext context, SpellTargetSettings settings) {
-			Context = context;
+		public int FindTargets(SpellTargetSettings settings, SpellPhase phase) {
 			Settings = settings;
-			list = new List<GameObject> ();
+			Phase = phase;
 
 			// TODO: Collect all matching targets
 			
-			return true;
+			return list.Count;
+		}
+		
+		public void Clear () {
+			list.Clear ();
+		}
+
+		void Add(GameObject go) {
+			list.Add (go);
+		}
+
+		void Remove(GameObject go) {
+			list.Remove (go);
 		}
 	}
 

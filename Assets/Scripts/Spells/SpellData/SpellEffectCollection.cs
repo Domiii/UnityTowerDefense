@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Spells {
 	[System.Serializable]
-	public class SpellEffectCollection : IEnumerable<SpellEffect> {
+	public class SpellEffectCollection : ScriptableObject, IEnumerable<SpellEffect> {
 		public SpellEffect[] Effects;
 		public SpellTargetSettings TargetSettings;
 

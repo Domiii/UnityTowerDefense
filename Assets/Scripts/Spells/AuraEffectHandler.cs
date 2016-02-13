@@ -4,15 +4,15 @@ using System.Collections;
 namespace Spells {
 	public class AuraEffectHandler : ISpellObject {
 		public virtual void OnAuraStart (SpellPhaseContext context) {
-			for (int i = 0; i < context.Targets.List.Count; ++i) {
-				var target = context.Targets.List [i];
+			for (int i = 0; i < context.Targets.Count; ++i) {
+				var target = context.Targets [i];
 				OnAuraStart (context, target);
 			}
 		}
 		
 		public virtual void Update (SpellPhaseContext context) {
-			for (int i = 0; i < context.Targets.List.Count; ++i) {
-				var target = context.Targets.List [i];
+			for (int i = 0; i < context.Targets.Count; ++i) {
+				var target = context.Targets [i];
 				Update (context, target);
 			}
 		}
@@ -24,8 +24,8 @@ namespace Spells {
 		}
 		
 		public virtual void Pulse (SpellPhaseContext context) {
-			for (int i = 0; i < context.Targets.List.Count; ++i) {
-				var target = context.Targets.List [i];
+			for (int i = 0; i < context.Targets.Count; ++i) {
+				var target = context.Targets [i];
 				Pulse (context, target);
 			}
 		}
@@ -34,8 +34,8 @@ namespace Spells {
 		}
 		
 		public virtual void OnAuraEnd (SpellPhaseContext context) {
-			for (int i = 0; i < context.Targets.List.Count; ++i) {
-				var target = context.Targets.List [i];
+			for (int i = 0; i < context.Targets.Count; ++i) {
+				var target = context.Targets [i];
 				Pulse (context, target);
 			}
 		}

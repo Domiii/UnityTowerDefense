@@ -8,20 +8,14 @@ namespace Spells {
 		public static SpellPhaseContext CreatePhaseContext(
 			SpellPhase spellPhase,
 			GameObject phaseObject,
-			Vector3 phaseStartPoint,
-			SpellTargetCollection targets) {
+			bool isTemporaryPhaseObject) {
 			
 			var phaseContext = SpellGameObjectManager.Instance.AddComponent<SpellPhaseContext>(phaseObject);
 			phaseContext.Phase = spellPhase;
-			phaseContext.PhaseStartPoint = phaseStartPoint;
-			
-			if (targets == null) {
-				targets = SpellObjectManager.Instance.Obtain<SpellTargetCollection>();
-			}
-			phaseContext.Targets = targets;
+			phaseContext.IsTemporaryPhaseObject = isTemporaryPhaseObject;
 			return phaseContext;
 		}
-		
+
 		protected bool isPulsing;
 		protected bool hasEnded;
 		protected int pulseCount;
@@ -30,9 +24,9 @@ namespace Spells {
 		protected Aura aura;
 		
 		public SpellPhaseContext() {
-			Targets = new SpellTargetCollection ();
 			isPulsing = false;
 			hasEnded = true;
+			Targets = SpellObjectManager.Instance.Obtain<SpellTargetCollection> ();
 		}
 		
 		public SpellPhase Phase {
@@ -45,26 +39,17 @@ namespace Spells {
 			private set;
 		}
 		
-		public Vector3 PhaseStartPoint {
+		public bool IsTemporaryPhaseObject {
 			get;
 			private set;
-		}
-		
-		public Dictionary<string, object> SpellPhaseData {
-			get {
-				if (spellPhaseData == null) {
-					spellPhaseData = new Dictionary<string, object> ();
-				}
-				return spellPhaseData;
-			}
 		}
 		
 		/// <summary>
 		/// Whether this PhaseContext has already reached the end of its lifetime.
 		/// </summary>
-		public bool HasEnded {
+		public bool IsActive {
 			get {
-				return hasEnded;
+				return !hasEnded;
 			}
 		}
 		
@@ -82,10 +67,35 @@ namespace Spells {
 				return pulseCount;
 			}
 		}
+
+		public float StartTime {
+			get;
+			private set;
+		}
+
+		public float TimeLeft {
+			get {
+				return StartTime + Phase.Template.Duration - Time.time;
+			}
+		}
 		
-		public void StartPhase() {
+		public Dictionary<string, object> SpellPhaseData {
+			get {
+				if (spellPhaseData == null) {
+					spellPhaseData = new Dictionary<string, object> ();
+				}
+				return spellPhaseData;
+			}
+		}
+
+		#region Phase Events
+		/// <summary>
+		/// Called by SpellPhase.NotifyStart
+		/// </summary>
+		internal void NotifyStart() {
 			hasEnded = false;
 			pulseCount = 0;
+			StartTime = Time.time;
 
 			// apply aura
 			if (Phase.Template.AuraTemplate != null) {
@@ -103,22 +113,29 @@ namespace Spells {
 				StartCoroutine (KeepPulsing ());
 			}
 		}
-		
-		public void EndPhase(bool interrupted) {
-			if (!interrupted && Phase.Template.EndEffects != null) {
+		/// <summary>
+		/// Is called by SpellPhase.NotifyEnd
+		/// </summary>
+		internal void NotifyEnd() {
+			if (Phase.Template.EndEffects != null) {
 				ApplySpellEffects (Phase.Template.EndEffects);
 			}
-
-			if (aura != null) {
-				aura.Remove();
-				aura = null;
-			}
-
+			
+			CleanUp ();
+			
 			isPulsing = false;
 			hasEnded = true;
 		}
+		#endregion
 		
-		
+		void ApplySpellEffects(SpellEffectCollection effects) {
+			Targets.FindTargets (effects.TargetSettings, this);
+			foreach (var effect in effects) {
+				effect.Apply (this);
+			}
+		}
+
+		#region Pulsing
 		IEnumerator KeepPulsing() {
 			while (true) {
 				yield return new WaitForSeconds(Phase.Template.RepeatDelay);
@@ -138,12 +155,23 @@ namespace Spells {
 		void Pulse() {
 			ApplySpellEffects (Phase.Template.RepeatEffects);
 		}
-		
-		void ApplySpellEffects(SpellEffectCollection effects) {
-			Targets.FindTargets (this, effects.TargetSettings);
-			foreach (var effect in effects) {
-				effect.Apply (this);
+		#endregion
+
+		#region Cleanup + Finalization
+		public void CleanUp() {
+			if (aura != null) {
+				aura.Remove();
+				aura = null;
+			}
+			
+			// remove self
+			SpellGameObjectManager.Instance.RemoveComponent (this);
+			
+			if (IsTemporaryPhaseObject) {
+				// this is only a temp object -> Destroy
+				SpellGameObjectManager.Instance.Recycle(gameObject);
 			}
 		}
+		#endregion
 	}
 }
