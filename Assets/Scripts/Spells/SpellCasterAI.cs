@@ -9,6 +9,13 @@ namespace Spells {
 				return GetComponent<SpellCaster>();
 			}
 		}
+
+		public bool WantsToCast {
+			get {
+				var caster = SpellCaster;
+				return !caster.IsCasting && caster.CanCastSpell;
+			}
+		}
 	}
 
 }

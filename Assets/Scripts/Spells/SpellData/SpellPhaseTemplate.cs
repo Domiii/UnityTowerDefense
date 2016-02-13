@@ -9,11 +9,11 @@ namespace Spells {
 	}
 
 	[System.Serializable]
-	public class SpellPhaseTemplate : ScriptableObject {
+	public abstract class SpellPhaseTemplate : ScriptableObject {
 		/// <summary>
 		/// Time in seconds
 		/// </summary>
-		public float Duration;
+		public float Duration = 2;
 		public GameObject PhaseObjectPrefab;
 
 		public SpellEffectCollection StartEffects;
@@ -28,13 +28,13 @@ namespace Spells {
 		public float RepeatDelay;
 		public int MaxRepetitions = 0;
 
-		[HideInInspector]
-		public string Name;
-
+		public abstract SpellPhaseId SpellPhaseId {
+			get;
+		}
 
 		public override string ToString ()
 		{
-			return Name + " Template";
+			return SpellPhaseId + " Template";
 		}
 	}
 

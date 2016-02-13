@@ -1,7 +1,8 @@
 using UnityEngine;
 using System.Collections;
 
-public class Projectile : MonoBehaviour {
+[RequireComponent(typeof(ProjectileCollisionTrigger2D))]
+public class Bullet : MonoBehaviour {
 	public float DamageMin = 10;
 	public float DamageMax = 20;
 	public float Speed = 1;

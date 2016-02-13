@@ -1,47 +1,38 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Linq;
 
 namespace Spells {
-	public enum SpellTargetWhere {
-		CasterSelectedUnit,
-		CasterSelectedPoint,
-
-		// spell cast is on self or starts from self
-		Self,
-
-		// randomly selected unit in spell range
-		RandomUnit,
-
-		// point in front of current spell phase object, randomly selected between min and max range
-		PointInFrontOfSource
-	}
-
-	public enum SpellTargetWhat {
-		SingleUnit,
-		SinglePoint,
-		UnitsInRadis, // (radius, nMaxTargets)
-		// UnitsInChain
-		// UnitsInCollider
-	}
-
-	public enum Affiliation {
-		Any = 0,
-		Friendly,
-		Hostile
-	}
-
 	[System.Serializable]
 	public class SpellTargetSettings : ScriptableObject {
 
-		// CastPhase (while casting; fallback phase owner = caster)
-		// ProjectilePhase (while projectile in flight; fallback phase owner = null, must have prefab)
-		// Impact (after projectile hit; fallback phase owner = projectile, or caster (if it has no projectile))
-
-		public SpellTargetWhere Where;
-		public SpellTargetWhat What;
+		// CastPhase (while casting; start position = caster)
+		// ProjectilePhase (while projectile in flight; start position = caster)
+		// Impact (after projectile hit; start position = target)
 		public float MinRange, MaxRange;
-		public Affiliation RequiredAffiliation; // only used for unit targets
-		// public Type Filter; // e.g. IsInFront (angle), IsWounded
+
+		public SpellTargetSelector[] TargetSelectors = new SpellTargetSelector[0];
+		// public Type Filter; // e.g. InFront (angle), Wounded, Hostile, Friendly
+		
+		public bool HasObjectTargets {
+			get {
+				for (int i = 0; i < TargetSelectors.Length; ++i) {
+					var selector = TargetSelectors[i];
+					if (selector.HasObjectTargets) return true;
+				}
+				return false;
+			}
+		}
+		
+		public bool HasPositionTarget {
+			get {
+				for (int i = 0; i < TargetSelectors.Length; ++i) {
+					var selector = TargetSelectors[i];
+					if (selector.HasPositionTarget) return true;
+				}
+				return false;
+			}
+		}
 	}
 
 }

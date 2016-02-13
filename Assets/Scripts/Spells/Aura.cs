@@ -6,6 +6,9 @@ namespace Spells {
 	// TODO: Add, Pulse, then Remove AuraEffects on this target
 	// TODO: AreaAura (https://github.com/WCell/WCell/blob/master/Services/WCell.RealmServer/Spells/Auras/AreaAura.cs#L269)
 
+	public interface IAuraController {
+	}
+
 	/// <summary>
 	/// Aura.
 	/// </summary>
@@ -23,6 +26,16 @@ namespace Spells {
 		}
 
 		public AuraTemplate Template {
+			get;
+			private set;
+		}
+
+		public bool IsControlled {
+			get;
+			private set;
+		}
+
+		public IAuraController Controller {
 			get;
 			private set;
 		}
@@ -51,21 +64,39 @@ namespace Spells {
 				return Template.Duration - TimeSinceStart;
 			}
 		}
-		
+			
 		public void StartAura(AuraTemplate template) {
-			StartAura (template, template.Duration);
+			StartAura (null, template, template.Duration);
 		}
 		
 		public void StartAura(AuraTemplate template, float duration) {
+			StartAura (null, template, duration);
+		}
+		
+		public void StartAura(IAuraController controller, AuraTemplate template) {
+			StartAura (controller, template, template.Duration);
+		}
+		
+		public void StartAura(IAuraController controller, AuraTemplate template, float duration) {
+			Controller = controller;
+			IsControlled = controller != null;
 			Template = template;
 			StartTime = Time.time;
 			Duration = duration;
 
+			// TODO: Create Prefab
 			// TODO: Create AuraEffectHandlers and start aura + pulsing
 		}
 
 		public void Remove() {
 			Destroy (this);
+		}
+
+		void Update() {
+			if (IsControlled && Controller == null) {
+				// controller is gone -> Remove
+				Destroy (this);
+			}
 		}
 	}
 

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Spells {
@@ -11,6 +12,12 @@ namespace Spells {
 		// TODO: Run and update Impact phase timers
 	// TODO: AreaAura (https://github.com/WCell/WCell/blob/master/Services/WCell.RealmServer/Spells/Auras/AreaAura.cs)
 	//			(" An AreaAura either applies AreaAura-Effects to everyone in a radius around its center or repeatedly triggers a spell on everyone around it.")
+	public enum SpellCastStatus {
+		Casting,
+		Failed,
+		Active,
+		Finished
+	}
 
 	public class SpellCast : MonoBehaviour, ISpellObject {
 
@@ -23,6 +30,21 @@ namespace Spells {
 		public SpellCastContext SpellCastContext {
 			get;
 			private set;
+		}
+
+		public SpellCastStatus Status {
+			get {
+				if (CastPhase != null && CastPhase.IsActive) {
+					return SpellCastStatus.Casting;
+				}
+				if (ProjectilePhase != null || ImpactPhase != null) {
+					return SpellCastStatus.Active;
+				}
+				if (HasFailed) {
+					return SpellCastStatus.Failed;
+				}
+				return SpellCastStatus.Finished;
+			}
 		}
 		
 		public CastPhase CastPhase {
@@ -65,6 +87,11 @@ namespace Spells {
 			get { return CastPhase != null && CastPhase.IsActive; }
 		}
 
+		public bool HasFailed {
+			get;
+			private set;
+		}
+
 		public SpellTargetCollection Targets {
 			get;
 			private set;
@@ -73,12 +100,13 @@ namespace Spells {
 
 
 		#region Public Methods
-		public bool StartCasting(GameObject caster, Spell spell, Transform InitialTarget, ref Vector3 initialTargetPosition) {
+		public bool StartCasting(GameObject caster, Spell spell, GameObject initialTarget, ref Vector3 initialTargetPosition) {
 			SpellCastContext.Caster = caster;
 			SpellCastContext.Spell = spell;
-			SpellCastContext.InitialTarget = InitialTarget;
+			SpellCastContext.InitialTarget = initialTarget;
 			SpellCastContext.InitialTargetPosition = initialTargetPosition;
-
+			
+			HasFailed = false;
 			StartTime = Time.time;
 
 			StartCastPhase ();
@@ -92,10 +120,18 @@ namespace Spells {
 		public void Interrupt() {
 			if (IsCasting) {
 				// TODO: Show some "fizzle" visuals?
-
-				// clean up
-				CleanUp();
+				Cancel();
 			}
+		}
+		
+		/// <summary>
+		/// Let spell cast fail and force clean up
+		/// </summary>
+		public void Cancel() {
+			HasFailed = true;
+			
+			// clean up
+			CleanUp();
 		}
 		#endregion
 
@@ -123,14 +159,15 @@ namespace Spells {
 		}
 
 		void UpdateCastTimer() {
-			if (CastPhase == null || CastPhase.Context == null) {
-				// was casting, but CastPhase or context got destroyed -> Something went wrong!
-				CleanUp();
+			if (CastPhase.Context == null) {
+				// was casting, but context got destroyed -> Cancel spell cast
+				Cancel();
 			}
 			else if (CastTimeLeft <= 0) {
 				// finished casting
 				EndCastPhase();
 			}
+			// else: still casting
 		}
 		
 		void UpdateContextStatus(MultiContextPhase phase, ref int activeContextCount) {
@@ -148,16 +185,17 @@ namespace Spells {
 		}
 		
 		void UpdateContextStatus(MultiContextPhase phase, int index, SpellPhaseContext context, ref int activeContextCount) {
-			if (context == null) {
-				// context is active but has been removed
-				phase.NotifyEnd (index);
+			if (context == null || context.ContextOwner == null) {
+				// context was active but carrier object or ContextOwner have been removed
+				phase.CleanUp (index);
+			}
+			else if (context.TimeLeft <= 0) {
+				// context expired
+				phase.NotifyEnd(index);
 			}
 			else {
-				// TODO: Update context timer. When time has run out -> Next step or remove?
-				// TODO: Keep moving projectile forward (check for Ridigdbody and ProjectileTrajectory components)
-				// TODO: Check if projectile impacted
-
-				// TODO: Call phase.NotifyEnd (index); when done
+				// context is still active
+				++activeContextCount;
 			}
 		}
 		#endregion
@@ -169,8 +207,7 @@ namespace Spells {
 			if (phaseTemplate != null) {
 				// yes CastPhase
 				CastPhase = SpellObjectManager.Instance.Obtain<CastPhase>();
-				var context = CreatePhaseContext (CastPhase, null);
-				CastPhase.NotifyStart(context);
+				CreatePhaseContext (CastPhase, gameObject, transform.position, transform.rotation);
 			}
 			else {
 				// no CastPhase
@@ -189,74 +226,111 @@ namespace Spells {
 		/// <summary>
 		/// Find all spell targets, then either send out projectiles to or impact on each of them.
 		/// </summary>
-		void StartCriticalPhase(SpellPhase phase) {
-			Targets.FindTargets (SpellCastContext.Spell.Targets, phase);
-			
+		void StartCriticalPhase(SpellPhase phase, Action<GameObject> goCb, Action<Vector3> posCb) {
+			Targets.FindTargets (gameObject, SpellCastContext, SpellCastContext.Spell.Targets);
+
+			if (Targets.TargetPosition != null) {
+				posCb(Targets.TargetPosition.Value);
+			}
+
 			for (var i = 0; i < Targets.Count; ++i) {
 				var target = Targets[i];
-				
-				// TODO: Create Projectile context on caster, send toward target
-				// TODO: Create Impact context on target
-				
-				// create one context per target
-				var context = CreatePhaseContext (phase, CastPhase != null ? CastPhase.Context : null);
-				phase.NotifyStart(context);
+				goCb(target);
 			}
 		}
 
 		void StartProjectilePhase() {
 			var phaseTemplate = SpellCastContext.Spell.ProjectilePhase;
 			if (phaseTemplate != null) {
-				if (SpellCastContext.Spell.ProjectilePhase.PhaseObjectPrefab == null) {
-					// no valid ProjectilePhase
-					Debug.LogError ("Spell's ProjectilePhase is missing PhaseObjectPrefab", SpellCastContext.Spell);
-					ImpactWithoutProjectile ();
-					return;
-				}
-				
 				// yes ProjectilePhase
 				ProjectilePhase = SpellObjectManager.Instance.Obtain<ProjectilePhase>();
 				ImpactPhase = SpellObjectManager.Instance.Obtain<ImpactPhase> ();
-				StartCriticalPhase(ProjectilePhase);
+				StartCriticalPhase(ProjectilePhase, ShootProjectileAt, ShootProjectileAt);
 			}
 			else {
 				// no ProjectilePhase
-				ImpactWithoutProjectile ();
+				StartImpactPhaseWithoutProjectiles ();
 			}
 		}
 		
 		/// <summary>
 		/// Impact on target without a projectile phase
 		/// </summary>
-		void ImpactWithoutProjectile() {
+		void StartImpactPhaseWithoutProjectiles() {
 			ImpactPhase = SpellObjectManager.Instance.Obtain<ImpactPhase> ();
-			StartCriticalPhase (ImpactPhase);
+			StartCriticalPhase (ImpactPhase, ImpactOnTarget, ImpactOnTarget);
+		}
+		
+		void ShootProjectileAt(GameObject target) {
+			var position = transform.position;
+			var rotation = Quaternion.LookRotation(target.transform.position - transform.position);
+			GameObject contextOwner = null;		// contextOwner == carrier object
+			var projectileContext = CreatePhaseContext (ProjectilePhase, contextOwner, position, rotation);
+			InitializeProjectile (projectileContext, target, target.transform.position);
+		}
+		
+		void ShootProjectileAt(Vector3 targetPosition) {
+			var position = transform.position;
+			var rotation = Quaternion.LookRotation(targetPosition - transform.position);
+			GameObject contextOwner = null;		// contextOwner == carrier object
+			var projectileContext = CreatePhaseContext (ProjectilePhase, contextOwner, position, rotation);
+			InitializeProjectile (projectileContext, null, targetPosition);
 		}
 
-		void OnProjectileImpact(SpellPhaseContext projectileContext) {
+		void InitializeProjectile(SpellPhaseContext context, GameObject target, Vector3 targetPosition) {
+			// TODO: Set projectile target and impact callback
+		}
+
+		void ImpactOnTarget(GameObject target) {
 			var phaseTemplate = SpellCastContext.Spell.ImpactPhase;
 			if (phaseTemplate != null) {
-				var context = CreatePhaseContext (ImpactPhase, projectileContext);
-				ImpactPhase.NotifyStart (context);
+				CreatePhaseContext (ImpactPhase, target, target.transform.position, Quaternion.identity);
 			}
 			else {
-				// there is always an impact phase. But it could be empty.
-				Debug.LogError("Invalid spell is missing ImpactPhase", SpellCastContext.Spell);
+				// nothing to do here...
+			}
+		}
+
+		void ImpactOnTarget(Vector3 targetPosition) {
+			var phaseTemplate = SpellCastContext.Spell.ImpactPhase;
+			if (phaseTemplate != null) {
+				CreatePhaseContext (ImpactPhase, null, targetPosition, Quaternion.identity);
+			}
+			else {
+				// nothing to do here...
 			}
 		}
 		#endregion
 
 
 		#region Clean Up + Finalization
-		void CleanUp() {
-			
-			// TODO: Destroy all existing contexts and temporary spell objects
-			SpellGameObjectManager.Instance.RemoveComponent (this);
+		/// <summary>
+		/// Destroy all temporary spell objects created by this cast.
+		/// </summary>
+		public void CleanUp() {
+			//SpellGameObjectManager.Instance.RemoveComponent (this);
 
+			if (CastPhase != null) {
+				CastPhase.CleanUp();
+				SpellObjectManager.Instance.Recycle(CastPhase);
+				CastPhase = null;
+			}
+			if (ProjectilePhase != null) {
+				ProjectilePhase.CleanUp();
+				SpellObjectManager.Instance.Recycle(ProjectilePhase);
+				ProjectilePhase = null;
+			}
+			if (ImpactPhase != null) {
+				ImpactPhase.CleanUp();
+				SpellObjectManager.Instance.Recycle(ImpactPhase);
+				ImpactPhase = null;
+			}
+
+			Targets.CleanUp ();
 		}
 
 		void OnDisable() {
-			// no such thing!
+			// disable = destroy
 			CleanUp ();
 		}
 		
@@ -267,23 +341,31 @@ namespace Spells {
 
 
 		#region Helper Methods
-		SpellPhaseContext CreatePhaseContext(SpellPhase phase, SpellPhaseContext sourcePhaseContext) {
+		//SpellPhaseContext CreatePhaseContext(SpellPhase phase, SpellPhaseContext sourcePhaseContext) {
+		SpellPhaseContext CreatePhaseContext(SpellPhase phase, GameObject contextOwner, Vector3 position, Quaternion rotation) {
 			var prefab = phase.Template.PhaseObjectPrefab;
-			GameObject phaseObject;
-			bool isTemporaryPhaseObject = prefab != null;
+			GameObject carrierObject;
+			//bool isTemporaryPhaseObject = prefab != null;
+			bool isTemporaryPhaseObject = true;
 
-			var sourcePhaseTransform = sourcePhaseContext != null ? sourcePhaseContext.transform : gameObject.transform;
-			if (isTemporaryPhaseObject) {
-				phaseObject = SpellGameObjectManager.Instance.Obtain(prefab, sourcePhaseTransform.position, sourcePhaseTransform.rotation);
+			prefab = prefab ?? SpellManager.Instance.DefaultPhasePrefab;
+
+			if (prefab != null) {
+				carrierObject = SpellGameObjectManager.Instance.Obtain(prefab, position, rotation);
 			}
 			else {
-				phaseObject = gameObject;
+				carrierObject = SpellGameObjectManager.Instance.ObtainEmpty(phase.ToString(), position, rotation);
 			}
 
-			return SpellPhaseContext.CreatePhaseContext (
+			var context = SpellPhaseContext.CreatePhaseContext (
+				carrierObject,
 				phase,
-				phaseObject,
+				contextOwner ?? carrierObject,
 				isTemporaryPhaseObject);
+
+			phase.NotifyStart(context);
+
+			return context;
 		}
 		#endregion
 

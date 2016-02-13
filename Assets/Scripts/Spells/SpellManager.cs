@@ -9,13 +9,11 @@ namespace Spells {
 			get;
 			private set;
 		}
-		
-		public List<SpellEffect> SpellEffects;
+
+		public GameObject DefaultPhasePrefab;
 
 		public SpellManager() {
 			Instance = this;
-
-			SpellEffects = new List<SpellEffect> ();
 		}
 
 

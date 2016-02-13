@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 
 public class Attacker : MonoBehaviour {
-	public GameObject ProjectilePrefab;
+	public GameObject BulletPrefab;
 	public float ShootDelaySeconds = 1;
 	public float AttackRadius = 30.0f;
 
@@ -17,8 +17,8 @@ public class Attacker : MonoBehaviour {
 	#region Default Events
 	// Use this for initialization
 	void Start () {
-		if (ProjectilePrefab == null) {
-			Debug.LogError("Attacker is missing Projectile Prefab", this);
+		if (BulletPrefab == null) {
+			Debug.LogError("Attacker is missing Bullet Prefab", this);
 			return;
 		}
 
@@ -175,7 +175,7 @@ public class Attacker : MonoBehaviour {
 
 	#region Attack
 	void AimAndShoot() {
-		if (ProjectilePrefab == null) {
+		if (BulletPrefab == null) {
 			return;
 		}
 		
@@ -204,18 +204,18 @@ public class Attacker : MonoBehaviour {
 	}
 	
 	public void ShootAt(Unit target) {
-		// create a new projectile
-		var projectileObj = (GameObject)Instantiate(ProjectilePrefab, transform.position, GetRotationToward(currentTarget.transform));
+		// create a new bullet
+		var bulletObj = (GameObject)Instantiate(BulletPrefab, transform.position, GetRotationToward(currentTarget.transform));
 
 		// set faction
-		FactionManager.SetFaction (projectileObj, gameObject);
+		FactionManager.SetFaction (bulletObj, gameObject);
 
 		// set velocity
-		var projectile = projectileObj.GetComponent<Projectile> ();
-		var rigidbody = projectileObj.GetComponent<Rigidbody2D> ();
-		var direction = target.transform.position - projectileObj.transform.position;
+		var bullet = bulletObj.GetComponent<Bullet> ();
+		var rigidbody = bulletObj.GetComponent<Rigidbody2D> ();
+		var direction = target.transform.position - bulletObj.transform.position;
 		direction.Normalize ();
-		rigidbody.velocity = direction * projectile.Speed;
+		rigidbody.velocity = direction * bullet.Speed;
 
 		// reset shoot time
 		lastShotTime = Time.time;
@@ -235,11 +235,11 @@ public class Attacker : MonoBehaviour {
 	void GetStatsData(StatsMenuData statsMenuData) {
 		statsMenuData.AttackRadius = AttackRadius;
 
-		// get damage from attacker's projectile
-		var projectile = ProjectilePrefab != null ? ProjectilePrefab.GetComponent<Projectile>() : null;
-		if (projectile != null) {
-			statsMenuData.DamageMax = projectile.DamageMax;
-			statsMenuData.DamageMin = projectile.DamageMin;
+		// get damage from attacker's bullet
+		var bullet = BulletPrefab != null ? BulletPrefab.GetComponent<Bullet>() : null;
+		if (bullet != null) {
+			statsMenuData.DamageMax = bullet.DamageMax;
+			statsMenuData.DamageMin = bullet.DamageMin;
 		}
 	}
 }

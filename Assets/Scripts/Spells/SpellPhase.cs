@@ -5,6 +5,8 @@ using System.Collections.Generic;
 namespace Spells {
 
 	public abstract class SpellPhase : ISpellObject {
+		protected Dictionary<string, object> spellPhaseData;
+
 		public SpellCastContext SpellCastContext {
 			get;
 			private set;
@@ -19,10 +21,21 @@ namespace Spells {
 			get;
 		}
 
+		public Dictionary<string, object> SpellPhaseData {
+			get {
+				if (spellPhaseData == null) {
+					spellPhaseData = new Dictionary<string, object> ();
+				}
+				return spellPhaseData;
+			}
+		}
+
 		protected internal abstract void NotifyStart (SpellPhaseContext context);
 
+		protected internal abstract void CleanUp ();
+
 		public override string ToString () {
-			return Template.Name;
+			return Template.SpellPhaseId.ToString();
 		}
 	}
 	
@@ -49,9 +62,17 @@ namespace Spells {
 		protected internal void NotifyEnd() {
 			if (Context != null) {
 				Context.NotifyEnd ();
+				Context = null;
 			}
 			isActive = false;
-			Context = null;
+		}
+
+		protected internal override void CleanUp () {
+			if (Context != null) {
+				Context.CleanUp();
+				Context = null;
+			}
+			isActive = false;
 		}
 	}
 
@@ -110,23 +131,47 @@ namespace Spells {
 					System.Array.Resize(ref contextActiveStatuses, ContextCount);
 				}
 			}
-			context.index = ContextCount - 1;
-			Contexts[context.index] = context;
-			contextActiveStatuses [context.index] = true;
+			context.Index = ContextCount - 1;
+			Contexts[context.Index] = context;
+			contextActiveStatuses [context.Index] = true;
 
 			context.NotifyStart ();
 		}
-
+		
 		internal void NotifyEnd(int index) {
 			if (contextActiveStatuses [index]) {
 				var context = contexts [index];
 				if (context != null) {
 					context.NotifyEnd ();
+					contexts [index] = null;
 				}
 				--ActiveContextCount;
 				contextActiveStatuses [index] = false;
-				Contexts [index] = null;
 			}
+		}
+		
+		internal void CleanUp(int index) {
+			var context = contexts [index];
+			if (context != null) {
+				context.CleanUp();
+				contexts [index] = null;
+			}
+			--ActiveContextCount;
+			contextActiveStatuses [index] = false;
+		}
+		
+		protected internal override void CleanUp () {
+			for (var i = 0; i < ContextCount; ++i) {
+				contextActiveStatuses[i] = false;
+				var context = contexts[i];
+				if (context != null) {
+					context.CleanUp();
+					contexts[i] = null;
+				}
+			}
+
+			ContextCount = 0;
+			ActiveContextCount = 0;
 		}
 	}
 	

@@ -6,7 +6,7 @@ namespace Spells {
 	public class SpellCastContext : ISpellObject {
 		public Spell Spell;
 		public GameObject Caster;
-		public Transform InitialTarget;
+		public GameObject InitialTarget;
 		public Vector3 InitialTargetPosition;
 
 		Dictionary<string, object> spellCastData;

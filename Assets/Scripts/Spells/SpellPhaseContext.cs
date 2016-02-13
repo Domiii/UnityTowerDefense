@@ -6,30 +6,34 @@ using System.Collections.Generic;
 namespace Spells {
 	public class SpellPhaseContext : MonoBehaviour, ISpellObject {
 		public static SpellPhaseContext CreatePhaseContext(
+			GameObject carrierObject,
 			SpellPhase spellPhase,
-			GameObject phaseObject,
+			GameObject contextOwner,
 			bool isTemporaryPhaseObject) {
 			
-			var phaseContext = SpellGameObjectManager.Instance.AddComponent<SpellPhaseContext>(phaseObject);
+			var phaseContext = SpellGameObjectManager.Instance.AddComponent<SpellPhaseContext>(carrierObject);
 			phaseContext.Phase = spellPhase;
+			phaseContext.ContextOwner = contextOwner;
 			phaseContext.IsTemporaryPhaseObject = isTemporaryPhaseObject;
 			return phaseContext;
 		}
 
 		protected bool isPulsing;
-		protected bool hasEnded;
+		protected bool isActive;
 		protected int pulseCount;
-		protected Dictionary<string, object> spellPhaseData;
-		protected internal int index;
-		protected Aura aura;
 		
 		public SpellPhaseContext() {
 			isPulsing = false;
-			hasEnded = true;
+			isActive = false;
 			Targets = SpellObjectManager.Instance.Obtain<SpellTargetCollection> ();
 		}
 		
 		public SpellPhase Phase {
+			get;
+			private set;
+		}
+
+		public GameObject ContextOwner {
 			get;
 			private set;
 		}
@@ -49,7 +53,7 @@ namespace Spells {
 		/// </summary>
 		public bool IsActive {
 			get {
-				return !hasEnded;
+				return isActive;
 			}
 		}
 		
@@ -78,13 +82,16 @@ namespace Spells {
 				return StartTime + Phase.Template.Duration - Time.time;
 			}
 		}
-		
-		public Dictionary<string, object> SpellPhaseData {
-			get {
-				if (spellPhaseData == null) {
-					spellPhaseData = new Dictionary<string, object> ();
-				}
-				return spellPhaseData;
+
+		public int Index {
+			get;
+			internal set;
+		}
+
+		void Update() {
+			if (ContextOwner != null && gameObject != ContextOwner) {
+				// if not context owner, glue to context owner
+				transform.position = ContextOwner.transform.position;
 			}
 		}
 
@@ -93,19 +100,17 @@ namespace Spells {
 		/// Called by SpellPhase.NotifyStart
 		/// </summary>
 		internal void NotifyStart() {
-			hasEnded = false;
+			isActive = true;
 			pulseCount = 0;
 			StartTime = Time.time;
 
 			// apply aura
-			if (Phase.Template.AuraTemplate != null) {
-				aura = Aura.AddAura(gameObject, Phase.Template.AuraTemplate, 0);
+			if (Phase.Template.AuraTemplate != null && ContextOwner != null) {
+				Aura.AddAura(ContextOwner.gameObject, Phase.Template.AuraTemplate, 0);
 			}
 
 			// apply StartEffects
-			if (Phase.Template.StartEffects != null) {
-				ApplySpellEffects (Phase.Template.StartEffects);
-			}
+			ApplySpellEffects (Phase.Template.StartEffects);
 
 			// start pulsing
 			if (Phase.Template.RepeatEffects != null) {
@@ -117,21 +122,21 @@ namespace Spells {
 		/// Is called by SpellPhase.NotifyEnd
 		/// </summary>
 		internal void NotifyEnd() {
-			if (Phase.Template.EndEffects != null) {
-				ApplySpellEffects (Phase.Template.EndEffects);
-			}
+			ApplySpellEffects (Phase.Template.EndEffects);
 			
 			CleanUp ();
 			
 			isPulsing = false;
-			hasEnded = true;
+			isActive = false;
 		}
 		#endregion
 		
 		void ApplySpellEffects(SpellEffectCollection effects) {
-			Targets.FindTargets (effects.TargetSettings, this);
-			foreach (var effect in effects) {
-				effect.Apply (this);
+			if (effects != null && ContextOwner != null && ContextOwner.activeInHierarchy) {
+				Targets.FindTargets (effects.TargetSettings, this);
+				foreach (var effect in effects) {
+					effect.Apply (this);
+				}
 			}
 		}
 
@@ -159,17 +164,13 @@ namespace Spells {
 
 		#region Cleanup + Finalization
 		public void CleanUp() {
-			if (aura != null) {
-				aura.Remove();
-				aura = null;
-			}
-			
-			// remove self
-			SpellGameObjectManager.Instance.RemoveComponent (this);
-			
 			if (IsTemporaryPhaseObject) {
-				// this is only a temp object -> Destroy
-				SpellGameObjectManager.Instance.Recycle(gameObject);
+				// this is only a temp object created to carry this Context -> Destroy
+				SpellGameObjectManager.Instance.Recycle (gameObject);
+			}
+			else {
+				// remove self
+				SpellGameObjectManager.Instance.RemoveComponent (this);
 			}
 		}
 		#endregion
