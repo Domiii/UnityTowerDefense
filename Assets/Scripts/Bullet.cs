@@ -32,10 +32,9 @@ public class Bullet : MonoBehaviour {
 		// when colliding with Unit -> Cause damage
 		var target = col.gameObject.GetComponent<Unit>();
 		if (target != null && target.CanBeAttacked && FactionManager.AreHostile (gameObject, target.gameObject)) {
-			var damageInfo = new DamageInfo { 
-				Value = Random.Range(DamageMin, DamageMax),
-				SourceFactionType = FactionManager.GetFactionType(gameObject)
-			};
+			var damageInfo = ObjectManager.Instance.Obtain<DamageInfo>();
+			damageInfo.Value = Random.Range(DamageMin, DamageMax);
+			damageInfo.SourceFactionType = FactionManager.GetFactionType(gameObject);
 			target.Damage(damageInfo);
 			Destroy (gameObject);
 		}

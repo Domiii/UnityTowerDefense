@@ -1,17 +1,17 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 
 namespace Spells {
-	public class SpellPhaseContext : MonoBehaviour, ISpellObject {
+	public class SpellPhaseContext : MonoBehaviour, IPooledObject {
 		public static SpellPhaseContext CreatePhaseContext(
 			GameObject carrierObject,
 			SpellPhase spellPhase,
 			GameObject contextOwner,
 			bool isTemporaryPhaseObject) {
 			
-			var phaseContext = SpellGameObjectManager.Instance.AddComponent<SpellPhaseContext>(carrierObject);
+			var phaseContext = GameObjectManager.Instance.AddComponent<SpellPhaseContext>(carrierObject);
 			phaseContext.Phase = spellPhase;
 			phaseContext.ContextOwner = contextOwner;
 			phaseContext.IsTemporaryPhaseObject = isTemporaryPhaseObject;
@@ -25,7 +25,7 @@ namespace Spells {
 		public SpellPhaseContext() {
 			isPulsing = false;
 			isActive = false;
-			Targets = SpellObjectManager.Instance.Obtain<SpellTargetCollection> ();
+			Targets = ObjectManager.Instance.Obtain<SpellTargetCollection> ();
 		}
 		
 		public SpellPhase Phase {
@@ -104,6 +104,9 @@ namespace Spells {
 			pulseCount = 0;
 			StartTime = Time.time;
 
+			// initialize target collection
+			Targets.InitializeTargets(ContextOwner, Phase.SpellCastContext);
+
 			// apply aura
 			if (Phase.Template.AuraTemplate != null && ContextOwner != null) {
 				Aura.AddAura(ContextOwner.gameObject, Phase.Template.AuraTemplate, 0);
@@ -133,7 +136,7 @@ namespace Spells {
 		
 		void ApplySpellEffects(SpellEffectCollection effects) {
 			if (effects != null && ContextOwner != null && ContextOwner.activeInHierarchy) {
-				Targets.FindTargets (effects.TargetSettings, this);
+				Targets.FindTargets (effects.TargetSettings);
 				foreach (var effect in effects) {
 					effect.Apply (this);
 				}
@@ -166,11 +169,11 @@ namespace Spells {
 		public void CleanUp() {
 			if (IsTemporaryPhaseObject) {
 				// this is only a temp object created to carry this Context -> Destroy
-				SpellGameObjectManager.Instance.Recycle (gameObject);
+				GameObjectManager.Instance.Recycle (gameObject);
 			}
 			else {
 				// remove self
-				SpellGameObjectManager.Instance.RemoveComponent (this);
+				GameObjectManager.Instance.RemoveComponent (this);
 			}
 		}
 		#endregion

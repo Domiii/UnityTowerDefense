@@ -9,6 +9,11 @@ using System.Reflection;
 using Spells;
 using System;
 
-[CustomEditor(typeof(SpellManager))]
-public class SpellManagerEditor : Editor {
+[CustomEditor(typeof(Aura))]
+public class AuraEditor : Editor {
+	public override void OnInspectorGUI () {
+		base.OnInspectorGUI ();
+
+
+	}
 }

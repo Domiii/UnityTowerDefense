@@ -4,14 +4,16 @@ using System.Collections;
 namespace Spells {
 	[System.Serializable]
 	public class DamageEffect : SpellEffect {
-		public int MinDamage = 10;
-		public int MaxDamage = 10;
+		public int DamageMin = 10;
+		public int DamageMax = 20;
 
 		public override void Apply(SpellPhaseContext context, GameObject target) {
 			var unit = target.GetComponent<Unit> ();
 			if (unit != null) {
-				// TODO: Apply damage to target
-				//target.Damage ();
+				var damageInfo = ObjectManager.Instance.Obtain<DamageInfo>();
+				damageInfo.Value = Random.Range(DamageMin, DamageMax);
+				damageInfo.SourceFactionType = FactionManager.GetFactionType(context.ContextOwner);
+				unit.Damage(damageInfo);
 			}
 		}
 	}

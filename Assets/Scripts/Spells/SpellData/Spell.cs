@@ -4,8 +4,6 @@ using System.Collections;
 namespace Spells {
 	[System.Serializable]
 	public class Spell : ScriptableObject {
-		public string Name = "new spell";
-
 		public float Cooldown;
 
 		/// <summary>

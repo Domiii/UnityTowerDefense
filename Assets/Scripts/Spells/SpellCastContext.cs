@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Spells {
-	public class SpellCastContext : ISpellObject {
+	public class SpellCastContext : IPooledObject {
 		public Spell Spell;
 		public GameObject Caster;
 		public GameObject InitialTarget;

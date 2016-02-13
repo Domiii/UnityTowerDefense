@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 namespace Spells {
-	public class AuraEffectHandler : ISpellObject {
+	public class AuraEffectHandler : IPooledObject {
 		public virtual void OnAuraStart (SpellPhaseContext context) {
 			for (int i = 0; i < context.Targets.Count; ++i) {
 				var target = context.Targets [i];

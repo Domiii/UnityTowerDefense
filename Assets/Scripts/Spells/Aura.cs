@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 namespace Spells {
@@ -13,14 +13,14 @@ namespace Spells {
 	/// Aura.
 	/// </summary>
 	/// <see cref="https://github.com/WCell/WCell/blob/master/Services/WCell.RealmServer/Spells/Spell.Aura.cs"/>
-	public class Aura : MonoBehaviour, ISpellObject {
+	public class Aura : MonoBehaviour, IPooledObject {
 		public static Aura AddAura(GameObject go, AuraTemplate template) {
-			var aura = SpellGameObjectManager.Instance.AddComponent<Aura>(go);
+			var aura = GameObjectManager.Instance.AddComponent<Aura>(go);
 			aura.StartAura (template);
 			return aura;
 		}
 		public static Aura AddAura(GameObject go, AuraTemplate template, float durationOverride) {
-			var aura = SpellGameObjectManager.Instance.AddComponent<Aura>(go);
+			var aura = GameObjectManager.Instance.AddComponent<Aura>(go);
 			aura.StartAura (template, durationOverride);
 			return aura;
 		}

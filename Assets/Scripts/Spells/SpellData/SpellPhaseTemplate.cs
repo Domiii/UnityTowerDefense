@@ -9,7 +9,7 @@ namespace Spells {
 	}
 
 	[System.Serializable]
-	public abstract class SpellPhaseTemplate : ScriptableObject {
+	public abstract class SpellPhaseTemplate {
 		/// <summary>
 		/// Time in seconds
 		/// </summary>

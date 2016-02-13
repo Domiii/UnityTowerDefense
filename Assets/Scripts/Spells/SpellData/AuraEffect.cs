@@ -7,6 +7,6 @@ namespace Spells {
 	/// E.g. Stun, Slow, Fast, Shield
 	/// </summary>
 	[System.Serializable]
-	public class AuraEffect : ScriptableObject {
+	public abstract class AuraEffect {
 	}
 }

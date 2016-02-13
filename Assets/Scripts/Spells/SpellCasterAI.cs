@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 namespace Spells {
@@ -13,8 +13,12 @@ namespace Spells {
 		public bool WantsToCast {
 			get {
 				var caster = SpellCaster;
-				return !caster.IsCasting && caster.CanCastSpell;
+				return !caster.IsCasting && caster.IsSpellReady;
 			}
+		}
+
+		void Update() {
+
 		}
 	}
 

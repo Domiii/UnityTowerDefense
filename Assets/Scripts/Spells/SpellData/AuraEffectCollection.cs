@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Spells {
 	[System.Serializable]
-	public class AuraEffectCollection : ScriptableObject, IEnumerable<AuraEffect> {
+	public class AuraEffectCollection : IEnumerable<AuraEffect> {
 		public AuraEffect[] Effects;
 
 		public IEnumerator<AuraEffect> GetEnumerator() {

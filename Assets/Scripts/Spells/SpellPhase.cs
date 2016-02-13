@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Spells {
 
-	public abstract class SpellPhase : ISpellObject {
+	public abstract class SpellPhase : IPooledObject {
 		protected Dictionary<string, object> spellPhaseData;
 
 		public SpellCastContext SpellCastContext {

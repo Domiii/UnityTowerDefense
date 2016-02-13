@@ -26,7 +26,7 @@ namespace Spells {
 		/// <summary>
 		/// Caster can cast spell when not on cooldown
 		/// </summary>
-		public bool CanCastSpell {
+		public bool IsSpellReady {
 			get {
 				var dt = Time.time - lastCastTime;
 				return dt >= Spell.Cooldown;
@@ -35,18 +35,46 @@ namespace Spells {
 
 		public void Interrupt() {
 			// interrupt current spell cast (if any)
-			if (SpellCast != null) {
+			if (IsCasting) {
 				SpellCast.Interrupt();
 			}
 		}
 		
-		public bool TryCastSpell(GameObject initialTarget, ref Vector3 initialTargetPosition) {
-			return TryCastSpell (Spell, initialTarget, ref initialTargetPosition);
+		public bool TryPrepareSpellCast(GameObject initialTarget) {
+			InitializeSpellCast (Spell);
+			return SpellCast.CanCastSpell (initialTarget, initialTarget.transform.position);
 		}
 		
-		public bool TryCastSpell(Spell spell, GameObject initialTarget, ref Vector3 initialTargetPosition) {
-			SpellCast = SpellGameObjectManager.Instance.AddComponent<SpellCast>(gameObject);
-			return SpellCast.StartCasting (gameObject, spell, initialTarget, ref initialTargetPosition);
+		public bool TryCastSpell(GameObject initialTarget) {
+			return TryCastSpell (Spell, initialTarget, initialTarget.transform.position);
+		}
+		
+		public bool TryCastSpell(Spell spell, GameObject initialTarget) {
+			return TryCastSpell (spell, initialTarget, initialTarget.transform.position);
+		}
+		
+		public bool TryCastSpell(GameObject initialTarget, Vector3 initialTargetPosition) {
+			return TryCastSpell (Spell, initialTarget, initialTargetPosition);
+		}
+		
+		public bool TryCastSpell(Spell spell, GameObject initialTarget, Vector3 initialTargetPosition) {
+			if (TryPrepareSpellCast (initialTarget)) {
+				SpellCast.StartCasting (initialTarget, initialTargetPosition);
+				return true;
+			}
+			return false;
+		}
+		
+		void InitializeSpellCast(Spell spell) {
+			// interrupt if already casting
+			Interrupt();
+			
+			if (SpellCast == null || SpellCast.Status != SpellCastStatus.Unused) {
+				SpellCast = GameObjectManager.Instance.AddComponent<SpellCast> (gameObject);
+			}
+			if (spell != SpellCast.SpellCastContext.Spell) {
+				SpellCast.Initialize (spell);
+			}
 		}
 
 		void Start() {
