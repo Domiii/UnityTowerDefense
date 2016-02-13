@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Spells {
 	[System.Serializable]
-	public class AuraTemplate {
+	public class AuraTemplate : ScriptableObject {
 		/// <summary>
 		/// Time in seconds
 		/// </summary>
