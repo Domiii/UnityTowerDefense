@@ -14,7 +14,7 @@ public interface IPooledObject {
 /// All run-time instantiations of IPooledObject
 /// are managed by the ObjectManager
 /// </summary>
-public class ObjectManager : MonoBehaviour {
+public class ObjectManager {
 	public static readonly ObjectManager Instance;
 
 	static ObjectManager() {

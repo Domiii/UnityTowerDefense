@@ -16,4 +16,8 @@ namespace Spells {
 
 
 	}
+
+	public class SpellEditingLocale {
+
+	}
 }

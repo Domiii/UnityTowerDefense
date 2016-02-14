@@ -22,6 +22,10 @@ public class SpellEditor : Editor {
 	public override void OnInspectorGUI () {
 		var spell = (Spell)target;
 		serializedObject.Update();
+
+		//EditorGUIUtility.currentViewWidth
+
+		// start drawing spell
 		spell.Cooldown = EditorGUILayout.FloatField("Cooldown", spell.Cooldown);
 
 		InspectSpellTargetSettings (spell.Targets);
@@ -40,6 +44,8 @@ public class SpellEditor : Editor {
 		
 		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetCollectors);
 		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetFilters);
+		
+		CustomGUIUtils.DrawSeparator ();
 	}
 
 	void InspectArrayWithInheritanceMutuallyExclusive<A>(ref A[] arr) 
@@ -81,8 +87,6 @@ public class SpellEditor : Editor {
 				}
 			}
 		}
-		
-		CustomGUIUtils.DrawSeparator ();
 	}
 
 	A AddCustomScriptableObjectToArray<A>(ref A[] arr, System.Type type)

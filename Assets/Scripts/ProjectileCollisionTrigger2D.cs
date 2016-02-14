@@ -28,12 +28,12 @@ public class ProjectileCollisionTrigger2D : MonoBehaviour {
 	/// If you do not change this, the physics engine (when it happens to pick up the collision) 
 	/// will send an extra message, prior to this component being able to. This might cause errors or unexpected behavior.
 	/// </summary>
-	public string MessageName = "OnTriggerEnter2D";
+	public string MessageName = "OnProjectileHit";
 
 	/// <summary>
 	/// Where to send the hit event message to.
 	/// </summary>
-	public TriggerTarget triggerTarget = TriggerTarget.Both;
+	public TriggerTarget triggerTarget = TriggerTarget.Self;
 
 	/// <summary>
 	/// How much of momentum is transfered upon impact.
@@ -84,7 +84,7 @@ public class ProjectileCollisionTrigger2D : MonoBehaviour {
 				var hitInfo = hitsInfo[i];
 				if (hitInfo && hitInfo.collider != myCollider) {
 					// apply force
-					if (hitInfo.rigidbody && momentumTransferFraction != 0) {
+					if (hitInfo.rigidbody != null && momentumTransferFraction != 0) {
 						// When using impulse mode, the force argument is actually the amount of instantaneous momentum transfered.
 						// Quick physics refresher: F = dp / dt = m * dv / dt
 						// Note: dt is the amount of time traveled (which is the time of the current frame and is taken care of internally, when using impulse mode)
