@@ -17,7 +17,7 @@ namespace Spells {
 		public GameObject PhaseObjectPrefab;
 
 		public SpellEffectCollection StartEffects;
-		public SpellEffectCollection RepeatEffects;
+
 		public SpellEffectCollection EndEffects;
 
 		/// <summary>
@@ -25,8 +25,10 @@ namespace Spells {
 		/// </summary>
 		public AuraTemplate AuraTemplate;
 
+
 		public float RepeatDelay;
 		public int MaxRepetitions = 0;
+		public SpellEffectCollection RepeatEffects;
 
 		public abstract SpellPhaseId SpellPhaseId {
 			get;

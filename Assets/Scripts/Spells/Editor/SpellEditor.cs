@@ -27,8 +27,19 @@ public class SpellEditor : Editor {
 
 		// start drawing spell
 		spell.Cooldown = EditorGUILayout.FloatField("Cooldown", spell.Cooldown);
-
+		
+		CustomGUIUtils.DrawSeparator ();
 		InspectSpellTargetSettings (spell.Targets);
+		
+		CustomGUIUtils.DrawSeparator ();
+		InspectCastPhaseTemplate (spell.CastPhase);
+		
+		CustomGUIUtils.DrawSeparator ();
+		InspectProjectilePhaseTemplate(spell.ProjectilePhase);
+
+		CustomGUIUtils.DrawSeparator ();
+		InspectImpactPhaseTemplate(spell.ImpactPhase);
+
 
 		if (GUI.changed) {
 			// write values back
@@ -36,16 +47,29 @@ public class SpellEditor : Editor {
 		}
 	}
 	
+	void InspectCastPhaseTemplate(CastPhaseTemplate phaseTemplate) {
+		InspectSpellPhaseTemplate (phaseTemplate);
+	}
+	
+	void InspectProjectilePhaseTemplate(ProjectilePhaseTemplate phaseTemplate) {
+		InspectSpellPhaseTemplate (phaseTemplate);
+	}
+	
+	void InspectImpactPhaseTemplate(ImpactPhaseTemplate phaseTemplate) {
+		InspectSpellPhaseTemplate (phaseTemplate);
+	}
+
+	void InspectSpellPhaseTemplate(SpellPhaseTemplate phaseTemplate) {
+		// phaseTemplate.Duration;
+	}
+	
 	void InspectSpellTargetSettings(SpellTargetSettings targets) {
-		CustomGUIUtils.DrawSeparator ();
 		EditorGUILayout.LabelField ("Targets", EditorStyles.boldLabel);
 		
 		targets.Range = EditorGUILayout.FloatField ("MaxRange", targets.Range);
 		
 		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetCollectors);
 		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetFilters);
-		
-		CustomGUIUtils.DrawSeparator ();
 	}
 
 	void InspectArrayWithInheritanceMutuallyExclusive<A>(ref A[] arr) 
