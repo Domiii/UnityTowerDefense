@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
+// Simple object pool here: https://unity3d.com/learn/tutorials/modules/beginner/live-training-archive/object-pooling
+
 /// <summary>
 /// Interface implemented by relatively short-lived objects (usually seconds) that can be pooled
 /// </summary>

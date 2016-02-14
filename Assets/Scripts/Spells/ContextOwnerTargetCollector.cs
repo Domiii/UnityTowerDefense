@@ -6,7 +6,8 @@ namespace Spells {
 
 	// TODO: RandomUnitInRange, UnitsInChain, UnitsInCollider
 
-	[BehaviorScript("CasterSelectedUnit")]
+	[CustomScriptableObject("CasterSelectedUnit")]
+	[System.Serializable]
 	public class CasterSelectedUnitTargetCollector : SpellTargetCollector {
 		public override bool HasObjectTargets {
 			get { return true; }
@@ -23,8 +24,9 @@ namespace Spells {
 		}
 	}
 	
-	[BehaviorScript("CasterSelectedPosition")]
-	public class CasterSelectedPositionTargetSelector : SpellTargetCollector {
+	[CustomScriptableObject("CasterSelectedPosition")]
+	[System.Serializable]
+	public class CasterSelectedPositionTargetCollector : SpellTargetCollector {
 		public override bool HasObjectTargets {
 			get { return false; }
 		}
@@ -38,8 +40,28 @@ namespace Spells {
 		}
 	}
 	
-	[BehaviorScript("Self")]
-	public class SelfTargetSelector : SpellTargetCollector {
+	[CustomScriptableObject("Caster")]
+	[System.Serializable]
+	public class CasterTargetCollector : SpellTargetCollector {
+		public override bool HasObjectTargets {
+			get { return true; }
+		}
+		
+		public override bool HasPositionTarget {
+			get { return false; }
+		}
+		
+		public override void CollectTargets(SpellTargetCollection targets) {
+			targets.AddTarget (targets.SpellCastContext.Caster);
+		}
+	}
+	
+	[CustomScriptableObject("ContextOwner")]
+	[System.Serializable]
+	public class ContextOwnerTargetCollector : SpellTargetCollector {
+		public float xxxxx;
+		public float yyyyy;
+
 		public override bool HasObjectTargets {
 			get { return true; }
 		}
@@ -53,10 +75,12 @@ namespace Spells {
 		}
 	}
 	
-	[BehaviorScript("UnitsInRadis2D")]
-	public class UnitsInRadisTargetSelector : SpellTargetCollector {
+	[CustomScriptableObject("UnitsAroundContextOwner2D")]
+	[System.Serializable]
+	public class UnitsAroundContextOwner2DCollector : SpellTargetCollector {
 		public float Radius;
 		public int MaxTargets = 0;
+
 		Collider2D[] collidersInRange = new Collider2D[128];
 
 		public override bool HasObjectTargets {
@@ -68,7 +92,7 @@ namespace Spells {
 		}
 		
 		public override void CollectTargets(SpellTargetCollection targets) {
-			var nResults = targets.AddTargetsInRadius2D(targets.Settings.Range, out collidersInRange);
+			var nResults = targets.AddTargetsInRadius2D(targets.ContextOwner.transform, targets.Settings.Range, out collidersInRange);
 			for (var i = 0; i < nResults; ++i) {
 				var collider = collidersInRange[i];
 				var unit = collider.GetComponent<Unit> ();

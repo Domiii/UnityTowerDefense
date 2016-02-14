@@ -9,72 +9,120 @@ using System.Linq;
 
 using Spells;
 
+// TODO: Rename or hide different options in different contexts
+// TODO: Make sure "script missing" objects get deleted
+
 [CustomEditor(typeof(Spell))]
 public class SpellEditor : Editor {
-	SerializedObject serializedSpell;
+	private Editor _editor;
 
 	void OnEnable() {
-		serializedSpell = new SerializedObject (target);
 	}
 
 	public override void OnInspectorGUI () {
 		var spell = (Spell)target;
+		serializedObject.Update();
 		spell.Cooldown = EditorGUILayout.FloatField("Cooldown", spell.Cooldown);
-		
-		CustomGUIUtils.DrawSeparator ();
 
 		InspectSpellTargetSettings (spell.Targets);
-		
-		CustomGUIUtils.DrawSeparator ();
 
 		if (GUI.changed) {
 			// write values back
 			serializedObject.ApplyModifiedProperties ();
 		}
 	}
-
-	// TODO: " The serialization system also does not support inheritance / polymorphism. 
-	//  When such a class is deserialized, Unity creates an instance of the variable type. It doesn't know what type of class was referenced when it get serialized." 
-	// 		(see http://answers.unity3d.com/questions/735534/serializedproperty-and-abstract-custom-classes.html)
-
+	
 	void InspectSpellTargetSettings(SpellTargetSettings targets) {
-		EditorGUILayout.LabelField("Targets", EditorStyles.boldLabel);
 		CustomGUIUtils.DrawSeparator ();
+		EditorGUILayout.LabelField ("Targets", EditorStyles.boldLabel);
+		
+		targets.Range = EditorGUILayout.FloatField ("MaxRange", targets.Range);
+		
+		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetCollectors);
+		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetFilters);
+	}
 
-		targets.Range = EditorGUILayout.FloatField("MaxRange", targets.Range);
+	void InspectArrayWithInheritanceMutuallyExclusive<A>(ref A[] arr) 
+		where A : ScriptableObject
+	{
+		var allEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
 
-		var collectorScripts = BehaviorScriptEditor.Scripts.GetEntries<SpellTargetCollector>();
-		var collectorsProperty = serializedSpell.FindProperty("Targets");
-		Debug.Log(collectorsProperty.type);
-		//var collectorsProperty = serializedSpell.FindProperty("Targets.TargetCollectors");
-//		for (int i = 0; i < collectorsProperty.arraySize; i++) {
-//			SerializedProperty elementProperty = collectorsProperty.GetArrayElementAtIndex (i);
-//			Debug.Log(elementProperty.type);
-//		}
-//		foreach (var script in collectorScripts) {
-//			var hadCollector = targets.TargetCollectors.Any(collector => collector.GetType() == script.Type);
-//			var hasCollector = EditorGUILayout.Toggle (script.Name, hadCollector);
-//			if (hasCollector != hadCollector) {
-//				if (!hasCollector) {
-//					// remove
-//					targets.TargetCollectors = targets.TargetCollectors.Where(collector => collector.GetType() == script.Type).ToArray();
-//				}
-//				else {
-//					// add
-//					var newCollector = (SpellTargetCollector)script.Type.GetConstructor(new System.Type[0]).Invoke(new System.Object[0]);
-//					targets.TargetCollectors = targets.TargetCollectors.Union(new SpellTargetCollector[] {newCollector}).ToArray();
-//				}
-//			}
-//
-//			if (hasCollector) {
-//				// draw collector data
-//
-////					SerializedProperty collectorProperty = collectorsProperty.GetArrayElementAtIndex(i);
-////					EditorGUILayout.PropertyField(collectorProperty, "Collectors", true);
-//			}
-//		}
+		foreach (var entry in allEntries) {
+			var matchingObjectIndex = ArrayUtility.FindIndex(arr, collector => collector.GetType() == entry.Type);
+			var wasTypeAdded = matchingObjectIndex >= 0;
+			var obj = wasTypeAdded ? arr[matchingObjectIndex] : null;
+			
+			var isObjectAdded = EditorGUILayout.Toggle (entry.Name, wasTypeAdded);
+			if (isObjectAdded != wasTypeAdded) {
+				if (!isObjectAdded) {
+					// remove
+					RemoveScriptableObjectFromArray(ref arr, obj);
+					obj = null;
+				}
+				else {
+					// add
+					obj = AddCustomScriptableObjectToArray(ref arr, entry.Type);
+				}
+				serializedObject.Update();
+			}
 
-		//targets.TargetCollectors
+			if (isObjectAdded) {
+				// draw object
+				var serializedWrapper = new SerializedObject(obj);
+				var objProp = serializedWrapper.GetIterator();
+				if (objProp.hasChildren) {
+					++EditorGUI.indentLevel;
+					objProp.NextVisible(true);		// ignore script
+					while (objProp.NextVisible(true)) {
+						EditorGUILayout.PropertyField(objProp, true);
+					}
+					--EditorGUI.indentLevel;
+					serializedWrapper.ApplyModifiedProperties();
+				}
+			}
+		}
+		
+		CustomGUIUtils.DrawSeparator ();
+	}
 
+	A AddCustomScriptableObjectToArray<A>(ref A[] arr, System.Type type)
+		where A : ScriptableObject
+	{
+		// save to asset
+		var newObj = (A)ScriptableObject.CreateInstance(type);
+		newObj.hideFlags = HideFlags.HideInHierarchy;
+		newObj.name = type.Name;
+		AssetDatabase.AddObjectToAsset(newObj, target);
+		//AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(animationClip));
+		AssetDatabase.SaveAssets();
+
+
+		// add to array
+		if (arr == null) {
+			arr = new A[1];
+		}
+		else {
+			System.Array.Resize(ref arr, arr.Length + 1);
+		}
+
+		arr[arr.Length-1] = newObj;
+
+		return newObj;
+	}
+
+	void RemoveScriptableObjectFromArray<A>(ref A[] arr, A obj)
+		where A : ScriptableObject
+	{
+		// delete from asset
+		UnityEngine.Object.DestroyImmediate (obj, true);
+
+		// contract array
+		var index = System.Array.IndexOf(arr, obj);
+		if (index != -1) {
+			for (var i = index; i < arr.Length-1; ++i) {
+				arr[i] = arr[i+1];
+			}
+			System.Array.Resize(ref arr, arr.Length - 1);
+		}
 	}
 }

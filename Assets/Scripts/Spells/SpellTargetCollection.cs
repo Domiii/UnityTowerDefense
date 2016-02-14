@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Spells {
 	#region SpellTargetSelector + SpellTargetFilter
 	[System.Serializable]
-	public abstract class SpellTargetCollector {
+	public abstract class SpellTargetCollector : ScriptableObject {
 		public abstract bool HasObjectTargets {
 			get;
 		}
@@ -18,7 +18,7 @@ namespace Spells {
 	}
 	
 	[System.Serializable]
-	public abstract class SpellTargetFilter {
+	public abstract class SpellTargetFilter : ScriptableObject {
 		public abstract bool IsValidTarget (SpellTargetCollection targets, GameObject target);
 	}
 	#endregion
@@ -105,7 +105,11 @@ namespace Spells {
 		}
 		
 		public int AddTargetsInRadius2D(float radius, out Collider2D[] collidersInRange) {
-			return AddTargetsInRadius2D (ContextOwner.transform.position, radius, out collidersInRange);
+			return AddTargetsInRadius2D (ContextOwner.transform, radius, out collidersInRange);
+		}
+		
+		public int AddTargetsInRadius2D(Transform where, float radius, out Collider2D[] collidersInRange) {
+			return AddTargetsInRadius2D (where.position, radius, out collidersInRange);
 		}
 		
 		public int AddTargetsInRadius2D(Vector3 position, float radius, out Collider2D[] collidersInRange) {

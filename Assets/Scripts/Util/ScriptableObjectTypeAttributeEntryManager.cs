@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 
-public class BehaviorScriptAttribute : System.Attribute {
+public class CustomScriptableObjectAttribute : System.Attribute {
 	public string Name;
 	public string Description;
 
-	public BehaviorScriptAttribute(string name, string description = "") {
+	public CustomScriptableObjectAttribute(string name, string description = "") {
 		Name = name;
 		Description = description;
 	}
 }
 
-public class BehaviorScriptEntry {
+public class CustomScriptableObjectEntry {
 	public System.Type Type;
-	public BehaviorScriptAttribute Attribute;
+	public CustomScriptableObjectAttribute Attribute;
 
 	public string Name {
 		get { return !string.IsNullOrEmpty(Attribute.Name) ? Attribute.Name : Type.Name; }
@@ -25,7 +25,7 @@ public class BehaviorScriptEntry {
 /// <summary>
 /// Manage Behavior scripts. 
 /// </summary>
-public class BehaviorScriptManager {
+public class CustomScriptableObjectManager {
 	public static void GetAllTypesWithAttribute<A> (Assembly assembly, System.Action<System.Type, A> cb)
 		where A : System.Attribute
 	{
@@ -38,9 +38,9 @@ public class BehaviorScriptManager {
 		}
 	}
 
-	public static BehaviorScriptManager FindAllBehaviorScripts() {
-		var mgr = new BehaviorScriptManager ();
-		GetAllTypesWithAttribute<BehaviorScriptAttribute>(Assembly.GetAssembly(typeof(BehaviorScriptAttribute)), mgr.AddEntry);
+	public static CustomScriptableObjectManager FindAllCustomScriptableObjects() {
+		var mgr = new CustomScriptableObjectManager ();
+		GetAllTypesWithAttribute<CustomScriptableObjectAttribute>(Assembly.GetAssembly(typeof(CustomScriptableObjectAttribute)), mgr.AddEntry);
 		return mgr;
 	}
 	
@@ -49,19 +49,19 @@ public class BehaviorScriptManager {
 			|| subclass == baseType;
 	}
 
-	public List<BehaviorScriptEntry> Scripts;
-	BehaviorScriptManager() {
-		Scripts = new List<BehaviorScriptEntry> ();
+	public List<CustomScriptableObjectEntry> Scripts;
+	CustomScriptableObjectManager() {
+		Scripts = new List<CustomScriptableObjectEntry> ();
 	}
 
-	void AddEntry(System.Type type, BehaviorScriptAttribute attr) {
-		Scripts.Add(new BehaviorScriptEntry() {
+	void AddEntry(System.Type type, CustomScriptableObjectAttribute attr) {
+		Scripts.Add(new CustomScriptableObjectEntry() {
 			Type = type,
 			Attribute = attr
 		});
 	}
 
-	public IEnumerable<BehaviorScriptEntry> GetEntries<T>() {
+	public IEnumerable<CustomScriptableObjectEntry> GetEntries<T>() {
 		return Scripts.Where(script => IsSameOrSubclass(typeof(T), script.Type));
 	}
 }

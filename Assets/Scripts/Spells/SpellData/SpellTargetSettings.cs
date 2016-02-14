@@ -14,6 +14,8 @@ namespace Spells {
 
 		public SpellTargetCollector[] TargetCollectors = new SpellTargetCollector[0];
 		public SpellTargetFilter[] TargetFilters = new SpellTargetFilter[0];
+
+		//public SimplifiedSerializableObject SerializableForm;
 		
 //		public bool HasObjectTargets {
 //			get {

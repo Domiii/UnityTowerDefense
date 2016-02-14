@@ -14,6 +14,5 @@ public class AuraEditor : Editor {
 	public override void OnInspectorGUI () {
 		base.OnInspectorGUI ();
 
-
 	}
 }
