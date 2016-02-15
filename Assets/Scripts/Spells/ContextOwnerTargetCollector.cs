@@ -59,9 +59,6 @@ namespace Spells {
 	[CustomScriptableObject("ContextOwner")]
 	[System.Serializable]
 	public class ContextOwnerTargetCollector : SpellTargetCollector {
-		public float xxxxx;
-		public float yyyyy;
-
 		public override bool HasObjectTargets {
 			get { return true; }
 		}

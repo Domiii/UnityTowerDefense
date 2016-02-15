@@ -8,8 +8,7 @@ namespace Spells {
 		ImpactPhase = 3
 	}
 
-	[System.Serializable]
-	public abstract class SpellPhaseTemplate {
+	public abstract class SpellPhaseTemplate : ScriptableObject {
 		/// <summary>
 		/// Time in seconds
 		/// </summary>
@@ -17,7 +16,7 @@ namespace Spells {
 		public GameObject PhaseObjectPrefab;
 
 		public SpellEffectCollection StartEffects;
-
+		public RepeatSpellEffectCollection RepeatEffects;
 		public SpellEffectCollection EndEffects;
 
 		/// <summary>
@@ -25,10 +24,6 @@ namespace Spells {
 		/// </summary>
 		public AuraTemplate AuraTemplate;
 
-
-		public float RepeatDelay;
-		public int MaxRepetitions = 0;
-		public SpellEffectCollection RepeatEffects;
 
 		public abstract SpellPhaseId SpellPhaseId {
 			get;

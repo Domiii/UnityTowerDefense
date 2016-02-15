@@ -6,6 +6,8 @@ namespace Spells {
 	public class Spell : ScriptableObject {
 		public float Cooldown;
 
+		public string[] SubAssets = new string[0];
+
 		/// <summary>
 		/// The targets where the spell impacts (where the projectiles fly to, if the spell has a projectile phase)
 		/// </summary>

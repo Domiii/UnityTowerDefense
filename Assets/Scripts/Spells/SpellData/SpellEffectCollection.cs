@@ -17,5 +17,11 @@ namespace Spells {
 			return Effects.GetEnumerator();
 		}
 	}
+	
+	[System.Serializable]
+	public class RepeatSpellEffectCollection : SpellEffectCollection {
+		public float RepeatDelay;
+		public float MaxRepetitions;
+	}
 
 }

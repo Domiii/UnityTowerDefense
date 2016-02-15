@@ -10,7 +10,6 @@ using System.Linq;
 using Spells;
 
 // TODO: Rename or hide different options in different contexts
-// TODO: Make sure "script missing" objects get deleted
 
 [CustomEditor(typeof(Spell))]
 public class SpellEditor : Editor {
@@ -24,133 +23,243 @@ public class SpellEditor : Editor {
 		serializedObject.Update();
 
 		//EditorGUIUtility.currentViewWidth
+		EditorGUILayout.TextArea (System.String.Join("\n", spell.SubAssets));
 
 		// start drawing spell
 		spell.Cooldown = EditorGUILayout.FloatField("Cooldown", spell.Cooldown);
+
 		
 		CustomGUIUtils.DrawSeparator ();
 		InspectSpellTargetSettings (spell.Targets);
 		
 		CustomGUIUtils.DrawSeparator ();
-		InspectCastPhaseTemplate (spell.CastPhase);
+		InspectCastPhaseTemplate ();
 		
 		CustomGUIUtils.DrawSeparator ();
-		InspectProjectilePhaseTemplate(spell.ProjectilePhase);
+		InspectProjectilePhaseTemplate();
 
 		CustomGUIUtils.DrawSeparator ();
-		InspectImpactPhaseTemplate(spell.ImpactPhase);
-
+		InspectImpactPhaseTemplate();
 
 		if (GUI.changed) {
 			// write values back
 			serializedObject.ApplyModifiedProperties ();
+			EditorUtility.SetDirty(target);
+		}
+
+		// TODO: For duplicate, we need to also duplicate all ScriptableObject sub assets
+//		if (GUILayout.Button ("Duplicate")) {
+//			var newSpell = Object.Instantiate(spell) as Spell;
+//			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+//				newSpell.GetInstanceID(),
+//				ScriptableObject.CreateInstance<EndNameEdit>(),
+//				string.Format("{0}.asset", "new spell"),
+//				AssetPreview.GetMiniThumbnail(newSpell), 
+//				null);
+//		}
+	}
+
+	#region Spell System Inspectors
+	void InspectCastPhaseTemplate() {
+		var spell = (Spell)target;
+		spell.CastPhase = ToggleAddRemoveScriptableObject ("Cast Phase", spell.CastPhase);
+		if (spell.CastPhase != null) {
+			//InspectSpellPhaseTemplate(spell.CastPhase);
 		}
 	}
 	
-	void InspectCastPhaseTemplate(CastPhaseTemplate phaseTemplate) {
-		InspectSpellPhaseTemplate (phaseTemplate);
+	void InspectProjectilePhaseTemplate() {
+		var spell = (Spell)target;
+		spell.ProjectilePhase = ToggleAddRemoveScriptableObject ("Projectile Phase", spell.ProjectilePhase);
+		if (spell.ProjectilePhase != null) {
+			InspectSpellPhaseTemplate(spell.ProjectilePhase);
+		}
 	}
 	
-	void InspectProjectilePhaseTemplate(ProjectilePhaseTemplate phaseTemplate) {
-		InspectSpellPhaseTemplate (phaseTemplate);
-	}
-	
-	void InspectImpactPhaseTemplate(ImpactPhaseTemplate phaseTemplate) {
-		InspectSpellPhaseTemplate (phaseTemplate);
+	void InspectImpactPhaseTemplate() {
+		var spell = (Spell)target;
+		spell.ImpactPhase = ToggleAddRemoveScriptableObject ("Impact Phase", spell.ImpactPhase);
+		if (spell.ImpactPhase != null) {
+			//InspectSpellPhaseTemplate(spell.ImpactPhase);
+		}
 	}
 
-	void InspectSpellPhaseTemplate(SpellPhaseTemplate phaseTemplate) {
-		// phaseTemplate.Duration;
+	void InspectSpellPhaseTemplate(SpellPhaseTemplate template) {
+		//InspectUnityObject(phaseTemplate);
+		++EditorGUI.indentLevel;
+		template.Duration = EditorGUILayout.FloatField ("Duration", template.Duration);
+		template.PhaseObjectPrefab = (GameObject)EditorGUILayout.ObjectField ("Phase Prefab", template.PhaseObjectPrefab, typeof(GameObject), false);
+		
+		InspectSpellEffects ("Start Effects", ref template.StartEffects);
+		//InspectRepeatSpellEffects ("Repeat Effects", ref template.RepeatEffects);
+		//template.EndEffects = InspectSpellEffects ("End Effects", ref template.EndEffects);
+		--EditorGUI.indentLevel;
 	}
 	
 	void InspectSpellTargetSettings(SpellTargetSettings targets) {
-		EditorGUILayout.LabelField ("Targets", EditorStyles.boldLabel);
+		EditorGUILayout.LabelField ("Targets");
 		
+		++EditorGUI.indentLevel;
 		targets.Range = EditorGUILayout.FloatField ("MaxRange", targets.Range);
 		
-		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetCollectors);
-		InspectArrayWithInheritanceMutuallyExclusive (ref targets.TargetFilters);
-	}
+		InspectArrayWithInheritanceMutuallyExclusiveTypes (ref targets.TargetCollectors);
+		InspectArrayWithInheritanceMutuallyExclusiveTypes (ref targets.TargetFilters);
 
-	void InspectArrayWithInheritanceMutuallyExclusive<A>(ref A[] arr) 
+		--EditorGUI.indentLevel;
+	}
+	
+	void InspectSpellEffects(string label, ref SpellEffectCollection spellEffects) {
+		spellEffects = ToggleAddRemoveSerializable (label, spellEffects);
+		if (spellEffects != null) {
+			++EditorGUI.indentLevel;
+			//InspectSpellEffects(spellEffects.Effects);
+			--EditorGUI.indentLevel;
+		}
+	}
+	
+	void InspectRepeatSpellEffects(string label, ref RepeatSpellEffectCollection spellEffects) {
+		spellEffects = ToggleAddRemoveSerializable (label, spellEffects);
+		if (spellEffects != null) {
+			++EditorGUI.indentLevel;
+			spellEffects.RepeatDelay = EditorGUILayout.FloatField ("Repeat Delay", spellEffects.RepeatDelay);
+			spellEffects.MaxRepetitions = EditorGUILayout.FloatField ("MaxRepetitions", spellEffects.MaxRepetitions);
+			//InspectSpellEffects(spellEffects.Effects);
+			--EditorGUI.indentLevel;
+		}
+	}
+	
+	void InspectSpellEffects(SpellEffect[] arr) {
+
+	}
+	#endregion
+
+	#region Generic Inspectors
+	void InspectArrayWithInheritanceMutuallyExclusiveTypes<A>(ref A[] arr) 
 		where A : ScriptableObject
 	{
 		var allEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
 
+		// remove empty entries
+		for (var i = arr.Length-1; i >= 0; --i) {
+			if (arr[i] == null) {
+				ArrayUtility.RemoveAt(ref arr, i);
+			}
+		}
+
+		// render all possible entries as "toggle" element
 		foreach (var entry in allEntries) {
 			var matchingObjectIndex = ArrayUtility.FindIndex(arr, collector => collector.GetType() == entry.Type);
-			var wasTypeAdded = matchingObjectIndex >= 0;
-			var obj = wasTypeAdded ? arr[matchingObjectIndex] : null;
-			
-			var isObjectAdded = EditorGUILayout.Toggle (entry.Name, wasTypeAdded);
-			if (isObjectAdded != wasTypeAdded) {
-				if (!isObjectAdded) {
+			var wasAdded = matchingObjectIndex >= 0;
+			var originalObj = wasAdded ? arr[matchingObjectIndex] : null;
+			var obj = ToggleAddRemoveScriptableObject(entry.Name, originalObj, entry.Type);
+			var isAdded = obj != null;
+			if (isAdded != wasAdded) {
+				if (!isAdded) {
 					// remove
-					RemoveScriptableObjectFromArray(ref arr, obj);
-					obj = null;
+					ArrayUtility.Remove(ref arr, originalObj);
 				}
 				else {
 					// add
-					obj = AddCustomScriptableObjectToArray(ref arr, entry.Type);
+					ArrayUtility.Add(ref arr, obj);
 				}
 				serializedObject.Update();
 			}
 
-			if (isObjectAdded) {
-				// draw object
-				var serializedWrapper = new SerializedObject(obj);
-				var objProp = serializedWrapper.GetIterator();
-				if (objProp.hasChildren) {
-					++EditorGUI.indentLevel;
-					objProp.NextVisible(true);		// ignore script
-					while (objProp.NextVisible(true)) {
-						EditorGUILayout.PropertyField(objProp, true);
-					}
-					--EditorGUI.indentLevel;
-					serializedWrapper.ApplyModifiedProperties();
-				}
+			if (obj != null) {
+				// render object inspector
+				InspectUnityObject(obj);
 			}
 		}
 	}
+	
+	void InspectUnityObject(Object obj) {
+		var serializedWrapper = new SerializedObject(obj);
+		var objProp = serializedWrapper.GetIterator();
+		if (objProp.hasChildren) {
+			++EditorGUI.indentLevel;
+			objProp.NextVisible(true);		// ignore script
+			while (objProp.NextVisible(true)) {
+				EditorGUILayout.PropertyField(objProp, true);
+			}
+			--EditorGUI.indentLevel;
+			serializedWrapper.ApplyModifiedProperties();
+		}
+	}
+	#endregion
 
-	A AddCustomScriptableObjectToArray<A>(ref A[] arr, System.Type type)
-		where A : ScriptableObject
+	#region Object Management
+	T AddNewObjectToAsset<T>() 
+		where T : ScriptableObject
 	{
-		// save to asset
-		var newObj = (A)ScriptableObject.CreateInstance(type);
-		newObj.hideFlags = HideFlags.HideInHierarchy;
+		return (T)AddNewObjectToAsset(typeof(T));
+	}
+	
+	ScriptableObject AddNewObjectToAsset(System.Type type) {
+		var newObj = ScriptableObject.CreateInstance(type);
+		//newObj.hideFlags = HideFlags.HideInHierarchy;
 		newObj.name = type.Name;
 		AssetDatabase.AddObjectToAsset(newObj, target);
-		//AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(animationClip));
+		AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(newObj));
 		AssetDatabase.SaveAssets();
 
-
-		// add to array
-		if (arr == null) {
-			arr = new A[1];
-		}
-		else {
-			System.Array.Resize(ref arr, arr.Length + 1);
-		}
-
-		arr[arr.Length-1] = newObj;
+		ArrayUtility.Add(ref ((Spell)target).SubAssets, type.Name);
 
 		return newObj;
 	}
-
-	void RemoveScriptableObjectFromArray<A>(ref A[] arr, A obj)
-		where A : ScriptableObject
-	{
-		// delete from asset
+	
+	void DeleteObjectFromAsset(ScriptableObject obj) {
+		ArrayUtility.Remove(ref ((Spell)target).SubAssets, obj.name);
 		UnityEngine.Object.DestroyImmediate (obj, true);
-
-		// contract array
-		var index = System.Array.IndexOf(arr, obj);
-		if (index != -1) {
-			for (var i = index; i < arr.Length-1; ++i) {
-				arr[i] = arr[i+1];
-			}
-			System.Array.Resize(ref arr, arr.Length - 1);
-		}
 	}
+	#endregion
+
+
+	#region GUI Components
+	T ToggleAddRemoveSerializable<T>(string label, T obj)
+		where T : new()
+	{
+		var wasAdded = !EqualityComparer<T>.Default.Equals(obj, default(T));
+		var isObjectAdded = EditorGUILayout.Toggle (label, wasAdded);
+
+		if (isObjectAdded != wasAdded) {
+			if (!isObjectAdded) {
+				// remove
+				obj = default(T);
+			}
+			else {
+				// add
+				obj = new T();
+			}
+			serializedObject.Update();
+		}
+		return obj;
+	}
+	
+	T ToggleAddRemoveScriptableObject<T>(string label, T obj)
+		where T : ScriptableObject
+	{
+		return ToggleAddRemoveScriptableObject (label, obj, typeof(T));
+	}
+
+	T ToggleAddRemoveScriptableObject<T>(string label, T obj, System.Type type) 
+		where T : ScriptableObject
+	{
+		Debug.Assert (type == typeof(T) || type.IsSubclassOf(typeof(T)), "Given type (should, but) is not equal to and does not inherit from T");
+		var wasAdded = obj != null;
+		var isObjectAdded = EditorGUILayout.Toggle (label, wasAdded);
+		if (isObjectAdded != wasAdded) {
+			if (!isObjectAdded) {
+				// remove
+				DeleteObjectFromAsset(obj);
+				obj = null;
+			}
+			else {
+				// add
+				obj = (T)AddNewObjectToAsset(type);
+			}
+			serializedObject.Update();
+		}
+		return obj;
+	}
+	#endregion
 }

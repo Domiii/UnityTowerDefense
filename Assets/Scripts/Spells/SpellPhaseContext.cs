@@ -145,8 +145,9 @@ namespace Spells {
 
 		#region Pulsing
 		IEnumerator KeepPulsing() {
+			var repeatEffects = Phase.Template.RepeatEffects;
 			while (true) {
-				yield return new WaitForSeconds(Phase.Template.RepeatDelay);
+				yield return new WaitForSeconds(repeatEffects.RepeatDelay);
 				if (!isPulsing) {
 					break;
 				}
@@ -154,7 +155,7 @@ namespace Spells {
 				Pulse ();
 				++pulseCount;
 				
-				if (Phase.Template.MaxRepetitions > 0 && pulseCount >= Phase.Template.MaxRepetitions) {
+				if (repeatEffects.MaxRepetitions > 0 && pulseCount >= repeatEffects.MaxRepetitions) {
 					isPulsing = false;
 				}
 			}
