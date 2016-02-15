@@ -4,8 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 namespace Spells {
-	[System.Serializable]
-	public class SpellEffectCollection : IEnumerable<SpellEffect> {
+	public class SpellEffectCollection : ScriptableObject, IEnumerable<SpellEffect> {
 		public SpellEffect[] Effects;
 		public SpellTargetSettings TargetSettings;
 
@@ -17,8 +16,7 @@ namespace Spells {
 			return Effects.GetEnumerator();
 		}
 	}
-	
-	[System.Serializable]
+
 	public class RepeatSpellEffectCollection : SpellEffectCollection {
 		public float RepeatDelay;
 		public float MaxRepetitions;

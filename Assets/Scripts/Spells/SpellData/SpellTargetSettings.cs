@@ -12,7 +12,11 @@ namespace Spells {
 	public class SpellTargetSettings {
 		public float Range = 3;
 
+		// TODO: RandomUnitInRange, UnitsInChain, UnitsInCollider
 		public SpellTargetCollector[] TargetCollectors = new SpellTargetCollector[0];
+
+		
+		// TODO: InFront (angle), Wounded
 		public SpellTargetFilter[] TargetFilters = new SpellTargetFilter[0];
 
 		//public SimplifiedSerializableObject SerializableForm;

@@ -16,8 +16,7 @@ namespace Spells {
 		
 		public abstract void CollectTargets(SpellTargetCollection targets);
 	}
-	
-	[System.Serializable]
+
 	public abstract class SpellTargetFilter : ScriptableObject {
 		public abstract bool IsValidTarget (SpellTargetCollection targets, GameObject target);
 	}

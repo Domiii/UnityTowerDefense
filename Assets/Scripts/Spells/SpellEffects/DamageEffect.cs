@@ -2,7 +2,7 @@
 using System.Collections;
 
 namespace Spells {
-	[System.Serializable]
+	[CustomScriptableObjectAttribute("Damage")]
 	public class DamageEffect : SpellEffect {
 		public int DamageMin = 10;
 		public int DamageMax = 20;

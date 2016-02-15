@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 
 using UnityEditor;
+using UnityEditorInternal;
 
 using System.Collections.Generic;
 using System.Reflection;
@@ -11,19 +12,83 @@ using Spells;
 
 // TODO: Rename or hide different options in different contexts
 
+public class ReorderableListManager<A>
+	where A : ScriptableObject
+{
+	Dictionary<A[], ReorderableListWrapper<A>> lists;
+	string label;
+}
+
+// TODO: Wrap ReorderableList to reflect array of custom ScriptableObjects
+// see: http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
+public class ReorderableListWrapper<A>
+	where A : ScriptableObject
+{
+	string label;
+	A[] arr;
+	SerializedObject serializedObject;
+	IEnumerable<CustomScriptableObjectEntry> possibleEntries;
+	ReorderableList list;
+
+	public ReorderableListWrapper(string label, A[] arr, SerializedObject serializedObject, SerializedProperty serializedProperty) {
+		this.label = label;
+		this.arr = arr;
+		this.serializedObject = serializedObject;
+
+		possibleEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
+		list = new ReorderableList(serializedObject, serializedProperty, false, true, true, true);
+		list.drawElementCallback = OnDrawElement;
+		list.drawHeaderCallback = OnDrawHeader;
+		list.onAddDropdownCallback = OnAddDropdown;
+	}
+
+	public void Render() {
+		list.DoLayoutList ();
+	}
+
+	void OnDrawElement(Rect rect, int index, bool isActive, bool isFocused) {
+		// TODO: draw element
+	}
+
+	void OnDrawHeader(Rect rect) {
+		EditorGUI.LabelField(rect, label);
+	}
+	
+	void OnAddDropdown(Rect buttonRect, ReorderableList list) {  
+		var menu = new GenericMenu();
+		foreach (var entry in possibleEntries) {
+			menu.AddItem(new GUIContent(entry.Name),
+			             false, 
+			             ClickHandler, 
+			             entry);
+		}
+		menu.ShowAsContext();
+	}
+
+	private void ClickHandler(object source) {
+		var entry = (CustomScriptableObjectEntry)source;
+
+		// TODO: instantiate
+
+		// ArrayUtility.Add (ref arr, obj);
+
+		serializedObject.ApplyModifiedProperties();
+	}
+}
+
 [CustomEditor(typeof(Spell))]
 public class SpellEditor : Editor {
-	private Editor _editor;
+	ReorderableListManager<SpellEffect> spellEffectLists;
+
 
 	void OnEnable() {
+		//var effects = CustomScriptableObjectManagerEditor.Scripts.GetEntries<SpellEffect>();
+		//allSpellEffects = new ReorderableList ();
 	}
 
 	public override void OnInspectorGUI () {
 		var spell = (Spell)target;
 		serializedObject.Update();
-
-		//EditorGUIUtility.currentViewWidth
-		EditorGUILayout.TextArea (System.String.Join("\n", spell.SubAssets));
 
 		// start drawing spell
 		spell.Cooldown = EditorGUILayout.FloatField("Cooldown", spell.Cooldown);
@@ -64,7 +129,7 @@ public class SpellEditor : Editor {
 		var spell = (Spell)target;
 		spell.CastPhase = ToggleAddRemoveScriptableObject ("Cast Phase", spell.CastPhase);
 		if (spell.CastPhase != null) {
-			//InspectSpellPhaseTemplate(spell.CastPhase);
+			InspectSpellPhaseTemplate(spell.CastPhase);
 		}
 	}
 	
@@ -80,7 +145,7 @@ public class SpellEditor : Editor {
 		var spell = (Spell)target;
 		spell.ImpactPhase = ToggleAddRemoveScriptableObject ("Impact Phase", spell.ImpactPhase);
 		if (spell.ImpactPhase != null) {
-			//InspectSpellPhaseTemplate(spell.ImpactPhase);
+			InspectSpellPhaseTemplate(spell.ImpactPhase);
 		}
 	}
 
@@ -91,8 +156,8 @@ public class SpellEditor : Editor {
 		template.PhaseObjectPrefab = (GameObject)EditorGUILayout.ObjectField ("Phase Prefab", template.PhaseObjectPrefab, typeof(GameObject), false);
 		
 		InspectSpellEffects ("Start Effects", ref template.StartEffects);
-		//InspectRepeatSpellEffects ("Repeat Effects", ref template.RepeatEffects);
-		//template.EndEffects = InspectSpellEffects ("End Effects", ref template.EndEffects);
+		InspectRepeatSpellEffects ("Repeat Effects", ref template.RepeatEffects);
+		InspectSpellEffects ("End Effects", ref template.EndEffects);
 		--EditorGUI.indentLevel;
 	}
 	
@@ -109,36 +174,36 @@ public class SpellEditor : Editor {
 	}
 	
 	void InspectSpellEffects(string label, ref SpellEffectCollection spellEffects) {
-		spellEffects = ToggleAddRemoveSerializable (label, spellEffects);
+		spellEffects = ToggleAddRemoveScriptableObject(label, spellEffects);
 		if (spellEffects != null) {
 			++EditorGUI.indentLevel;
-			//InspectSpellEffects(spellEffects.Effects);
+			InspectSpellEffects(ref spellEffects.Effects);
 			--EditorGUI.indentLevel;
 		}
 	}
 	
 	void InspectRepeatSpellEffects(string label, ref RepeatSpellEffectCollection spellEffects) {
-		spellEffects = ToggleAddRemoveSerializable (label, spellEffects);
+		spellEffects = ToggleAddRemoveScriptableObject (label, spellEffects);
 		if (spellEffects != null) {
 			++EditorGUI.indentLevel;
 			spellEffects.RepeatDelay = EditorGUILayout.FloatField ("Repeat Delay", spellEffects.RepeatDelay);
 			spellEffects.MaxRepetitions = EditorGUILayout.FloatField ("MaxRepetitions", spellEffects.MaxRepetitions);
-			//InspectSpellEffects(spellEffects.Effects);
+			InspectSpellEffects(ref spellEffects.Effects);
 			--EditorGUI.indentLevel;
 		}
 	}
 	
-	void InspectSpellEffects(SpellEffect[] arr) {
-
+	void InspectSpellEffects(ref SpellEffect[] arr) {
+		InspectArrayWithInheritance(ref arr);
 	}
 	#endregion
 
 	#region Generic Inspectors
-	void InspectArrayWithInheritanceMutuallyExclusiveTypes<A>(ref A[] arr) 
+	void InspectArrayWithInheritance<A>(ref A[] arr) 
 		where A : ScriptableObject
 	{
 		var allEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
-
+		
 		// remove empty entries
 		for (var i = arr.Length-1; i >= 0; --i) {
 			if (arr[i] == null) {
@@ -146,6 +211,30 @@ public class SpellEditor : Editor {
 			}
 		}
 
+		for (var i = arr.Length-1; i >= 0; --i) {
+			var obj = arr[i];
+
+			if (obj != null) {
+				// render object inspector
+				InspectUnityObject(obj);
+			}
+		}
+
+
+	}
+
+	void InspectArrayWithInheritanceMutuallyExclusiveTypes<A>(ref A[] arr) 
+		where A : ScriptableObject
+	{
+		var allEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
+		
+		// remove empty entries
+		for (var i = arr.Length-1; i >= 0; --i) {
+			if (arr[i] == null) {
+				ArrayUtility.RemoveAt(ref arr, i);
+			}
+		}
+		
 		// render all possible entries as "toggle" element
 		foreach (var entry in allEntries) {
 			var matchingObjectIndex = ArrayUtility.FindIndex(arr, collector => collector.GetType() == entry.Type);
@@ -164,7 +253,7 @@ public class SpellEditor : Editor {
 				}
 				serializedObject.Update();
 			}
-
+			
 			if (obj != null) {
 				// render object inspector
 				InspectUnityObject(obj);
@@ -196,19 +285,16 @@ public class SpellEditor : Editor {
 	
 	ScriptableObject AddNewObjectToAsset(System.Type type) {
 		var newObj = ScriptableObject.CreateInstance(type);
-		//newObj.hideFlags = HideFlags.HideInHierarchy;
+		newObj.hideFlags = HideFlags.HideInHierarchy;
 		newObj.name = type.Name;
 		AssetDatabase.AddObjectToAsset(newObj, target);
 		AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(newObj));
 		AssetDatabase.SaveAssets();
 
-		ArrayUtility.Add(ref ((Spell)target).SubAssets, type.Name);
-
 		return newObj;
 	}
 	
 	void DeleteObjectFromAsset(ScriptableObject obj) {
-		ArrayUtility.Remove(ref ((Spell)target).SubAssets, obj.name);
 		UnityEngine.Object.DestroyImmediate (obj, true);
 	}
 	#endregion
