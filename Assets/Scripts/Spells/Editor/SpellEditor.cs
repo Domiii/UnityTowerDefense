@@ -79,7 +79,7 @@ public class ReorderableListWrapper<A>
 
 		// TODO: instantiate
 
-		ArrayUtility.Add (ref arr, obj);
+		//ArrayUtility.Add (ref arr, obj);
 
 		serializedObject.ApplyModifiedProperties();
 	}
