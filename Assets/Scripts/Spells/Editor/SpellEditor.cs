@@ -47,7 +47,16 @@ public class ReorderableListWrapper<A>
 	}
 
 	void OnDrawElement(Rect rect, int index, bool isActive, bool isFocused) {
-		// TODO: draw element
+		var obj = arr [index];
+		var serializedWrapper = new SerializedObject(obj);
+		var objProp = serializedWrapper.GetIterator();
+		if (objProp.hasChildren) {
+			objProp.NextVisible(true);		// ignore script
+			while (objProp.NextVisible(true)) {
+				EditorGUILayout.PropertyField(objProp, true);
+			}
+			serializedWrapper.ApplyModifiedProperties();
+		}
 	}
 
 	void OnDrawHeader(Rect rect) {
@@ -59,22 +68,23 @@ public class ReorderableListWrapper<A>
 		foreach (var entry in possibleEntries) {
 			menu.AddItem(new GUIContent(entry.Name),
 			             false, 
-			             ClickHandler, 
+			             OnDropdownClick, 
 			             entry);
 		}
 		menu.ShowAsContext();
 	}
 
-	private void ClickHandler(object source) {
+	private void OnDropdownClick(object source) {
 		var entry = (CustomScriptableObjectEntry)source;
 
 		// TODO: instantiate
 
-		// ArrayUtility.Add (ref arr, obj);
+		ArrayUtility.Add (ref arr, obj);
 
 		serializedObject.ApplyModifiedProperties();
 	}
 }
+
 
 [CustomEditor(typeof(Spell))]
 public class SpellEditor : Editor {
@@ -261,7 +271,7 @@ public class SpellEditor : Editor {
 		}
 	}
 	
-	void InspectUnityObject(Object obj) {
+	public static void InspectUnityObject(Object obj) {
 		var serializedWrapper = new SerializedObject(obj);
 		var objProp = serializedWrapper.GetIterator();
 		if (objProp.hasChildren) {
