@@ -25,7 +25,12 @@ public class BuyUnitStatus {
 	}
 	
 	public bool HasSufficientFunds {
-		get { return unitManager.Faction.Credits >= Config.CreditCost; }
+		get { 
+			if (unitManager.Faction != null) {
+				return unitManager.Faction.Credits >= Config.CreditCost;
+			}
+			return true;
+		}
 	}
 	
 	public bool CanBuy {
@@ -42,7 +47,9 @@ public class BuyUnitStatus {
 	
 	public void BuyUnit() {
 		lastBuyTime = Time.time;
-		unitManager.Faction.DeductCredits(Config.CreditCost);
+		if (unitManager.Faction != null) {
+			unitManager.Faction.DeductCredits (Config.CreditCost);
+		}
 		unitManager.ProduceUnit(Config);
 	}
 }

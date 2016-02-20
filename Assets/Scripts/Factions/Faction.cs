@@ -35,7 +35,7 @@ public class Faction : MonoBehaviour {
 	public void GainCredits(int credits, Vector3 srcPosition) {
 		Credits += credits;
 
-		// TODO: move this somewhere else
+		// TODO: move this somewhere else?
 		if (_factionType == FactionType.Player) {
 			GameUIManager.Instance.ShowGainCreditText (credits, srcPosition);
 		}

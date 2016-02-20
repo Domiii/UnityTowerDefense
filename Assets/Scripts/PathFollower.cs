@@ -88,7 +88,8 @@ public class PathFollower : MonoBehaviour {
 		var direction = targetPosition - transform.position;
 		direction.Normalize ();
 
-		rigidbody.velocity = direction * Speed;
+		//rigidbody.velocity = direction * Speed;
+		transform.position += direction * Speed * Time.deltaTime;
 //		Debug.DrawRay(transform.position, direction, Color.red);
 //		Debug.DrawLine (transform.position, targetPosition, Color.green);
 		

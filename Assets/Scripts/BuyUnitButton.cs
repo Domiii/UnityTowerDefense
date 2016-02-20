@@ -19,6 +19,7 @@ public class BuyUnitButton : MonoBehaviour {
 	// Use this for initialization
 	public void Start () {
 		_isShowingCooldown = true;
+
 		_cooldownOverlay = transform.FindFirstDescendantByName("CooldownOverlay");
 		if (_cooldownOverlay == null) {
 			Debug.LogError("BuyUnitButton is missing child \"CooldownOverlay\"", this);

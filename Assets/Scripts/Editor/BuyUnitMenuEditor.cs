@@ -140,8 +140,18 @@ public class BuyUnitMenuEditor : Editor {
 			previewRenderer.transform.localScale =  new Vector2(scale.x * previewSize.x / newSize.x, scale.y * previewSize.y / newSize.y);
 		}
 		
-		// finally, scale then move to correct position
+		// scale then move to correct position
 		MoveAndScaleButton (btn, index);
+
+		// make sure, canvas sorting is overridden
+		for (var i = 0; i < btn.transform.childCount; ++i) {
+			var child = btn.transform.GetChild(i);
+			var canvas = child.GetComponent<Canvas>();
+			
+			if (canvas != null) {
+				canvas.overrideSorting = true;
+			}
+		}
 
 		btnSettings.Start ();
 	}
