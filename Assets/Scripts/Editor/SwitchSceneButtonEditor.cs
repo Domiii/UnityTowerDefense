@@ -20,21 +20,12 @@ public class SwitchSceneButtonEditor : Editor {
 
 	public override void OnInspectorGUI ()
 	{
-		Debug.Log (EditorBuildSettings.scenes.Length);
 		base.OnInspectorGUI ();
 
 		var btn = (SwitchSceneButton)target;
 
-		EditorGUILayout.LabelField ("Scene");
-
-		var scenes = GetAllSceneNames ().ToArray();
-		var currentIndex = System.Array.IndexOf(scenes, btn.Scene);
-
 		// display list
-		currentIndex = EditorGUILayout.Popup(currentIndex, scenes);
-		
-		if (currentIndex > -1) {
-			btn.Scene = scenes[currentIndex];
-		}
+		var scenes = GetAllSceneNames ().ToArray();
+		btn.SceneIndex = EditorGUILayout.Popup("Scene", btn.SceneIndex, scenes);
 	}
 }
