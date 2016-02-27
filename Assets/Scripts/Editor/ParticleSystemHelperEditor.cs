@@ -13,8 +13,8 @@ using System.IO;
 /// 
 /// </summary>
 /// <see cref="http://answers.unity3d.com/questions/585108/how-do-you-access-sorting-layers-via-scripting.html"/>
-[CustomEditor(typeof(SortHelper))]
-public class SortHelperEditor : Editor {
+[CustomEditor(typeof(ParticleSystemHelper))]
+public class ParticleSystemHelperEditor : Editor {
 	// Get the sorting layer names
 	public string[] GetSortingLayerNames() {
 		System.Type internalEditorUtilityType = typeof(InternalEditorUtility);
@@ -31,7 +31,7 @@ public class SortHelperEditor : Editor {
 	public override void OnInspectorGUI () {
 		base.OnInspectorGUI ();
 		
-		var sortHelper = (SortHelper)target;
+		var sortHelper = (ParticleSystemHelper)target;
 
 
 		var names = GetSortingLayerNames ();

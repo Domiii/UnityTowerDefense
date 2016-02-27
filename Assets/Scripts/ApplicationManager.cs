@@ -1,21 +1,34 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Linq;
 
+// TODO: Need to store ApplicationManager and PlayerGameState as ScriptableObject, to make them accessible across scenes
+
+[ExecuteInEditMode]
 public class ApplicationManager : MonoBehaviour {
 	public static ApplicationManager Instance {
 		get;
 		private set;
 	}
 
-	public string[] Levels = new string[0];
+	[HideInInspector]
+	public LevelInfo[] Levels = new LevelInfo[0];
 
 	public ApplicationManager() {
+	}
+
+	public bool IsValidLevel(string level) {
+		return Levels.Any(lvlInfo => lvlInfo.SceneName == level);
+	}
+
+	public int GetLevelIndex(string level) {
+		return Levels.ToList().FindIndex(lvlInfo => level == lvlInfo.SceneName);
 	}
 
 	void Awake()
 	{
 		if(Instance) {
-			//Debug.LogWarning("Trying to create more than one SceneManager, but SceneManager is global Singleton.", this);
+			Debug.LogWarning("Trying to create more than one ApplicationManager, but ApplicationManager is global Singleton.", this);
 			DestroyImmediate(gameObject);
 		}
 		else
@@ -23,5 +36,20 @@ public class ApplicationManager : MonoBehaviour {
 			DontDestroyOnLoad(gameObject);
 			Instance = this;
 		}
+	}
+}
+
+
+[System.Serializable]
+public class LevelInfo {
+	public string SceneName;
+
+	public LevelInfo(string sceneName) {
+		SceneName = sceneName;
+	}
+
+	public override string ToString ()
+	{
+		return SceneName;
 	}
 }

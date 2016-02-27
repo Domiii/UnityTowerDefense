@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent(typeof(ParticleSystem))]
-public class SortHelper : MonoBehaviour {
+public class ParticleSystemHelper : MonoBehaviour {
 	public int SortingOrder = 0;
 	private int sortingLayer = 0;
 

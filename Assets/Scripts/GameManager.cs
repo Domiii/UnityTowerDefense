@@ -74,6 +74,8 @@ public class GameManager : MonoBehaviour {
 
 	#region Game Events
 	public void WinGame() {
+		// mark level as finished
+		PlayerGameState.Instance.FinishedCurrentLevel ();
 		OnGameOverStart(GameStatus.Won, SceneAfterWin);
 	}
 	
