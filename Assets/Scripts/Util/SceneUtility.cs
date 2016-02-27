@@ -22,9 +22,9 @@ public static class SceneUtility {
 		}
 	}
 
-	public static string InspectSceneSelectionDropdown(string label, string currentScenename) {
+	public static string InspectSceneSelectionDropdown(string label, string currentSceneName) {
 		var sceneNames = SceneUtility.GetAllSceneNames ().ToArray();
-		var index = System.Array.FindIndex(sceneNames, scene => scene == currentScenename);
+		var index = System.Array.FindIndex(sceneNames, scene => scene == currentSceneName);
 		index = EditorGUILayout.Popup(label, index, sceneNames);
 		if (index > -1 && index < sceneNames.Length) {
 			return sceneNames [index];

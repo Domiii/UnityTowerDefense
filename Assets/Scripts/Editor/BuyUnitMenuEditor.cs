@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
+
 using System.Collections;
 using System.Linq;
 using System.IO;
+using System.Reflection;
 
 [CustomEditor(typeof(BuyUnitMenu))]
 public class BuyUnitMenuEditor : Editor {
@@ -65,23 +67,37 @@ public class BuyUnitMenuEditor : Editor {
 	/// Loads the unit preview sprite.
 	/// </summary>
 	/// <see cref="http://answers.unity3d.com/questions/1139254/how-to-set-sprite-or-texture2d-assetpath-in-editor.html">TODO: Fix errors</see>
-	Sprite CreateUnitPreview(int index, Object asset, Bounds worldBounds) {
-		var previewTexture = StorePreviewAsAsset (asset, index);
+	void GetOrCreateUnitPreview(SpriteRenderer renderer, int index, BuyUnitConfig cfg, Bounds worldBounds) {
+		if (cfg.PreviewIcon != null) {
+			// sprite given
+			renderer.sprite = cfg.PreviewIcon;
+		}
+		else if (cfg.UnitPrefab.GetComponent<SpriteRenderer> () != null) {
+			// no sprite -> Check if Unit is sprite, if so, copy that
+			var src = cfg.UnitPrefab.GetComponent<SpriteRenderer> ();
+			//CopyComponent (src, renderer.gameObject);
+			renderer.sprite = src.sprite;
+			renderer.color = src.color;
+			renderer.materials = src.sharedMaterials;
+		}
+		else {
+			// nothing -> create preview texture from asset
+			var previewTexture = StorePreviewAsAsset (cfg.UnitPrefab, index);
 
-		// compute pixels per unit size to fill given bounds while keeping aspect ratio
-		var texW = previewTexture.width;
-		var texH = previewTexture.height;
-		var worldW = worldBounds.max.x - worldBounds.min.x;
-		var worldH = worldBounds.max.y - worldBounds.min.y;
-		var pixelsPerUnit = Mathf.Min (texW / worldW, texH / worldH);
+			// compute pixels per unit size to fill given bounds while keeping aspect ratio
+			var texW = previewTexture.width;
+			var texH = previewTexture.height;
+			var worldW = worldBounds.max.x - worldBounds.min.x;
+			var worldH = worldBounds.max.y - worldBounds.min.y;
+			var pixelsPerUnit = Mathf.Min (texW / worldW, texH / worldH);
 
-		// create sprite
-		Sprite sprite = new Sprite ();
-		var previewSpriteRect = new Rect(new Vector2(0,0), new Vector2(texW, texH));
-		var pivot = new Vector2 (0.5f, 0.5f);
-		sprite = Sprite.Create (previewTexture, previewSpriteRect, pivot, pixelsPerUnit);
-
-		return sprite;
+			// create sprite
+			var sprite = new Sprite ();
+			var previewSpriteRect = new Rect (new Vector2 (0, 0), new Vector2 (texW, texH));
+			var pivot = new Vector2 (0.5f, 0.5f);
+			sprite = Sprite.Create (previewTexture, previewSpriteRect, pivot, pixelsPerUnit);
+			renderer.sprite = sprite;
+		}
 	}
 
 	void MoveAndScaleButton(GameObject btn, int index) {
@@ -130,14 +146,16 @@ public class BuyUnitMenuEditor : Editor {
 		else {
 			// create preview image
 			var previewRenderer = previewObject.GetComponent<SpriteRenderer> ();
-			var previewBounds = previewRenderer.bounds;
-			previewRenderer.sprite = CreateUnitPreview(index, status.Config.UnitPrefab, previewBounds);
-			
-			// resize (make sure, new sprite fills out the entire space)
-			var previewSize = previewBounds.max - previewBounds.min;
-			var newSize = previewRenderer.bounds.max - previewRenderer.bounds.min;
-			var scale = previewRenderer.transform.localScale;
-			previewRenderer.transform.localScale =  new Vector2(scale.x * previewSize.x / newSize.x, scale.y * previewSize.y / newSize.y);
+			if (previewRenderer != null) {
+				var previewBounds = previewRenderer.bounds;
+				GetOrCreateUnitPreview(previewRenderer, index, status.Config, previewBounds);
+				
+				// resize (make sure, new sprite fills out the entire space)
+				var previewSize = previewBounds.max - previewBounds.min;
+				var newSize = previewRenderer.bounds.max - previewRenderer.bounds.min;
+				var scale = previewRenderer.transform.localScale;
+				previewRenderer.transform.localScale =  new Vector2(scale.x * previewSize.x / newSize.x, scale.y * previewSize.y / newSize.y);
+			}
 		}
 		
 		// scale then move to correct position

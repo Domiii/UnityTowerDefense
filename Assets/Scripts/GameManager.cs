@@ -92,17 +92,18 @@ public class GameManager : MonoBehaviour {
 			if (nextScene.SceneSwitchPrefab != null) {
 				Instantiate (nextScene.SceneSwitchPrefab);
 			}
-			
-			CoroutineUtility.StartDelaySeconds(GameSceneSwitchDelay * Time.timeScale, () => {
-				Debug.Log("EndGame");
-				EndGame (status, nextScene);
-			});
+
+			if (GameSceneSwitchDelay >= 0) {
+				CoroutineUtility.StartDelaySeconds(GameSceneSwitchDelay * Time.timeScale, () => {
+					EndGame (status, nextScene);
+				});
+			}
 		}
 	}
 
 	void EndGame(GameStatus status, SceneSwitchConfig nextScene) {
 		if (nextScene.SceneName == null) {
-			Debug.LogError("Next scene invalid for game status: " + status);
+			Debug.LogError("Next scene not set for game status: " + status);
 			return;
 		}
 

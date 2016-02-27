@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System.Collections;
 
-[CustomEditor(typeof(SceneManager))]
+[CustomEditor(typeof(ApplicationManager))]
 public class SceneManagerEditor : Editor {
 	public override void OnInspectorGUI ()
 	{

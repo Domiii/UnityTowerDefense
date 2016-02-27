@@ -6,7 +6,7 @@ public class GameUIManager : MonoBehaviour {
 	public static GameUIManager Instance;
 
 	public Canvas MainCanvas;
-	public Text GainCreditTextPrefab;
+	public Text GainCreditPrefab;
 	public GameObject AttackerHighlighterPrefab;
 	public GameObject DimmerPrefab;
 
@@ -109,16 +109,18 @@ public class GameUIManager : MonoBehaviour {
 
 	#region Text
 	public void ShowGainCreditText(int credits, Vector3 position) {
-		if (GainCreditTextPrefab == null)
+		if (GainCreditPrefab == null)
 			return;
 
-		var go = (GameObject)Instantiate (GainCreditTextPrefab, position, Quaternion.identity);
+		var go = (GameObject)Instantiate (GainCreditPrefab, position, Quaternion.identity);
 		var text = go.GetComponent<Text> ();
-		var scale = go.transform.localScale;
-		text.transform.SetParent (MainCanvas.transform, true);
-		go.transform.localScale = scale;
-		text.text = "+ " + credits;
-		Destroy (go, 2);
+		if (text != null) {
+			var scale = go.transform.localScale;
+			text.transform.SetParent (MainCanvas.transform, true);
+			go.transform.localScale = scale;
+			text.text = "+ " + credits;
+			Destroy (go, 2);		// destroy after 2 seconds
+		}
 	}
 	#endregion
 }

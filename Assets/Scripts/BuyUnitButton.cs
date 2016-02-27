@@ -13,7 +13,12 @@ public class BuyUnitButton : MonoBehaviour {
 	Text _costText;
 	
 	public BuyUnitStatus Status {
-		get { return Menu.UnitManager.GetStatus(UnitStatusIndex); }
+		get {
+			if (Menu.UnitManager) {
+				return Menu.UnitManager.GetStatus(UnitStatusIndex);
+			}
+			return null;
+		}
 	}
 
 	// Use this for initialization
@@ -52,6 +57,10 @@ public class BuyUnitButton : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		if (Status == null) {
+			return;
+		}
+
 		Debug.Assert (_cooldownOverlay != null && _progressBar != null);
 
 		_disabledOverlay.gameObject.SetActive (!Status.CanBuy);
@@ -76,7 +85,7 @@ public class BuyUnitButton : MonoBehaviour {
 
 	
 	void OnMouseDown() {
-		if (Status.CanBuy) {
+		if (Status != null && Status.CanBuy) {
 			Status.BuyUnit();
 		}
 	}
