@@ -54,7 +54,7 @@ public class MenuManager : MonoBehaviour {
 	}
 	
 	public void GoToCanvas(string name) {
-		var camera = Camera;
+		//var camera = Camera;
 		var canvas = Canvases.Where (c => c.name == name).FirstOrDefault();
 		if (canvas != null) {
 			GoToCanvas(canvas);

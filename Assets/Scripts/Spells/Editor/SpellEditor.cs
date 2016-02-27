@@ -75,7 +75,7 @@ public class ReorderableListWrapper<A>
 	}
 
 	private void OnDropdownClick(object source) {
-		var entry = (CustomScriptableObjectEntry)source;
+		//var entry = (CustomScriptableObjectEntry)source;
 
 		// TODO: instantiate
 
@@ -212,7 +212,7 @@ public class SpellEditor : Editor {
 	void InspectArrayWithInheritance<A>(ref A[] arr) 
 		where A : ScriptableObject
 	{
-		var allEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
+		//var allEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
 		
 		// remove empty entries
 		for (var i = arr.Length-1; i >= 0; --i) {

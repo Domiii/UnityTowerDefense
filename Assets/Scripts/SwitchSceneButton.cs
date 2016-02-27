@@ -4,7 +4,7 @@ using System.Collections;
 
 public class SwitchSceneButton : MonoBehaviour {
 	[HideInInspector]
-	public int SceneIndex;
+	public string SceneName;
 
 	void Awake() {
 		var btn = GetComponent<Button>();
@@ -14,6 +14,6 @@ public class SwitchSceneButton : MonoBehaviour {
 	}
 
 	void OnMouseDown() {
-		Application.LoadLevel (SceneIndex);
+		Application.LoadLevel (SceneName);
 	}
 }

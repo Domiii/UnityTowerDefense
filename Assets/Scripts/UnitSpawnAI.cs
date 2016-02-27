@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(UnitManager))]
 public class UnitSpawnAI : MonoBehaviour {
 	UnitManager unitManager;
 	int nextChoice;

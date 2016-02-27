@@ -22,8 +22,9 @@ using System.Collections;
 public class GameManager : MonoBehaviour {
 	public enum GameStatus
 	{
-		Running,
-		Finished
+		Running = 1,
+		Won,
+		Lost
 	}
 
 	public static GameManager Instance {
@@ -31,24 +32,37 @@ public class GameManager : MonoBehaviour {
 		private set;
 	}
 
+
 	#region Game Variables
+	public float GameSceneSwitchDelay = 2;
+
+	[HideInInspector]
 	public GameStatus CurrentGameStatus = GameStatus.Running;
+	
+	[HideInInspector]
+	public SceneSwitchConfig SceneAfterWin;
+	
+	[HideInInspector]
+	public SceneSwitchConfig SceneAfterLoss;
 	#endregion
 
 
 	public GameManager() {
 		Instance = this;
 	}
+	
+	public bool IsRunning {
+		get { return CurrentGameStatus == GameStatus.Running; }
+	}
 
 	void Start() {
 		DontDestroyOnLoad(gameObject);
 	}
-	
-	public bool IsGameOver {
-		get { return CurrentGameStatus == GameStatus.Finished; }
-	}
 
-	#region GameManager Methods
+	#region Public Methods
+	/// <summary>
+	/// Starts next wave on all existing WaveGenerators
+	/// </summary>
 	public void StartNextWave() {
 		var waveGenerators = FindObjectsOfType(typeof(WaveGenerator));
 		foreach (var waveGenerator in waveGenerators) {
@@ -57,17 +71,48 @@ public class GameManager : MonoBehaviour {
 	}
 	#endregion
 
+
 	#region Game Events
-	public void OnLastWave() {
-
+	public void WinGame() {
+		OnGameOverStart(GameStatus.Won, SceneAfterWin);
 	}
-
-	/// <summary>
-	/// This method is called when player has beaten all waves
-	/// </summary>
-	public void OnFinishedAllWaves() {
-		// TODO: End the game!
-		CurrentGameStatus = GameStatus.Finished;
+	
+	public void LoseGame() {
+		OnGameOverStart(GameStatus.Lost, SceneAfterLoss);
 	}
    	#endregion
+
+	void OnGameOverStart(GameStatus status, SceneSwitchConfig nextScene) {
+		CurrentGameStatus = status;
+
+		// slow down everything
+		Time.timeScale = 0.1f;
+		
+		if (nextScene != null) {
+			if (nextScene.SceneSwitchPrefab != null) {
+				Instantiate (nextScene.SceneSwitchPrefab);
+			}
+			
+			CoroutineUtility.StartDelaySeconds(GameSceneSwitchDelay * Time.timeScale, () => {
+				Debug.Log("EndGame");
+				EndGame (status, nextScene);
+			});
+		}
+	}
+
+	void EndGame(GameStatus status, SceneSwitchConfig nextScene) {
+		if (nextScene.SceneName == null) {
+			Debug.LogError("Next scene invalid for game status: " + status);
+			return;
+		}
+
+		Application.LoadLevel (nextScene.SceneName);
+	}
+}
+
+[System.Serializable]
+public class SceneSwitchConfig {
+	[HideInInspector]
+	public string SceneName;
+	public GameObject SceneSwitchPrefab;
 }

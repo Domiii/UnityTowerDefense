@@ -104,7 +104,6 @@ public class WaveGenerator : MonoBehaviour {
 	public void StartNextWave() {
 		if (NextWaveTemplate == null) {
 			// all waves done!
-			GameManager.Instance.OnLastWave();
 			return;
 		}
 
