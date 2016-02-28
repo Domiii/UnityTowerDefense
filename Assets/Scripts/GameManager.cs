@@ -34,6 +34,7 @@ public class GameManager : MonoBehaviour {
 
 
 	#region Game Variables
+	[HideInInspector]
 	public float GameSceneSwitchDelay = 2;
 
 	[HideInInspector]
@@ -95,11 +96,11 @@ public class GameManager : MonoBehaviour {
 				Instantiate (nextScene.SceneSwitchPrefab);
 			}
 
-			if (GameSceneSwitchDelay >= 0) {
-				StartCoroutine(CoroutineUtility.DelaySeconds(GameSceneSwitchDelay * Time.timeScale, () => {
-					EndGame (status, nextScene);
-				}));
-			}
+//			if (GameSceneSwitchDelay >= 0) {
+//				StartCoroutine(CoroutineUtility.DelaySeconds(GameSceneSwitchDelay * Time.timeScale, () => {
+//					EndGame (status, nextScene);
+//				}));
+//			}
 		}
 	}
 

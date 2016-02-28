@@ -25,8 +25,8 @@ public class GameManagerEditor : Editor {
 		var prefabWrapper = sceneConfigWrapper.FindPropertyRelative ("SceneSwitchPrefab");
 		EditorGUILayout.PropertyField (prefabWrapper, new GUIContent("Show prefab"));
 
-		var sceneWrapper = sceneConfigWrapper.FindPropertyRelative ("SceneName");
-		sceneWrapper.stringValue = SceneUtility.InspectSceneSelectionDropdown ("Switch to Scene", sceneWrapper.stringValue);
+//		var sceneWrapper = sceneConfigWrapper.FindPropertyRelative ("SceneName");
+//		sceneWrapper.stringValue = SceneUtility.InspectSceneSelectionDropdown ("Switch to Scene", sceneWrapper.stringValue);
 
 		serializedObject.ApplyModifiedProperties();
 	}

@@ -5,7 +5,6 @@ using System.Collections;
 public class GameUIManager : MonoBehaviour {
 	public static GameUIManager Instance;
 
-	public Canvas MainCanvas;
 	public Text GainCreditPrefab;
 	public GameObject AttackerHighlighterPrefab;
 	public GameObject DimmerPrefab;
@@ -115,9 +114,6 @@ public class GameUIManager : MonoBehaviour {
 		var go = (GameObject)Instantiate (GainCreditPrefab, position, Quaternion.identity);
 		var text = go.GetComponent<Text> ();
 		if (text != null) {
-			var scale = go.transform.localScale;
-			text.transform.SetParent (MainCanvas.transform, true);
-			go.transform.localScale = scale;
 			text.text = "+ " + credits;
 			Destroy (go, 2);		// destroy after 2 seconds
 		}
