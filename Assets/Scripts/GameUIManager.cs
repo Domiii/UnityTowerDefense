@@ -5,7 +5,7 @@ using System.Collections;
 public class GameUIManager : MonoBehaviour {
 	public static GameUIManager Instance;
 
-	public Text GainCreditPrefab;
+	public GameObject GainCreditPrefab;
 	public GameObject AttackerHighlighterPrefab;
 	public GameObject DimmerPrefab;
 
@@ -112,7 +112,7 @@ public class GameUIManager : MonoBehaviour {
 			return;
 
 		var go = (GameObject)Instantiate (GainCreditPrefab, position, Quaternion.identity);
-		var text = go.GetComponent<Text> ();
+		var text = go.transform.FindFirstDescendantWithComponent<Text> ();
 		if (text != null) {
 			text.text = "+ " + credits;
 			Destroy (go, 2);		// destroy after 2 seconds
