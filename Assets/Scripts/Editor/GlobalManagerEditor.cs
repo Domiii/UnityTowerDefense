@@ -1,16 +1,16 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 
-[CustomEditor(typeof(ApplicationManager))]
-public class ApplicationManagerEditor : Editor{
+[CustomEditor(typeof(GlobalManager))]
+public class GlobalManagerEditor : Editor {
 
 	public override void OnInspectorGUI ()
 	{
 		base.OnInspectorGUI ();
 
-		var mgr = (ApplicationManager)target;
+		var mgr = (GlobalManager)target;
 		var levels = mgr.Levels;
 
 		EditorGUILayout.BeginVertical ();

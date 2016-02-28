@@ -13,11 +13,11 @@ public static class CoroutineUtility {
       *         CoroutineUtils.WaitForSeconds(2),
       *         CoroutineUtils.Do(() => Debug.Log("B"))));
       */
-	public static IEnumerator Chain(params IEnumerator[] actions) {
-		foreach (IEnumerator action in actions) {
-			yield return ApplicationManager.Instance.StartCoroutine(action);
-		}
-	}
+//	public static IEnumerator Chain(params IEnumerator[] actions) {
+//		foreach (IEnumerator action in actions) {
+//			yield return GlobalManager.Instance.StartCoroutine(action);
+//		}
+//	}
 	
 	/**
       * Usage: StartCoroutine(CoroutineUtils.DelaySeconds(action, delay))
@@ -31,9 +31,9 @@ public static class CoroutineUtility {
 		action();
 
 	}
-	public static Coroutine StartDelaySeconds(float delay, Action action) {
-		return ApplicationManager.Instance.StartCoroutine(DelaySeconds(delay, action));
-	}
+//	public static Coroutine StartDelaySeconds(float delay, Action action) {
+//		return GlobalManager.Instance.StartCoroutine(DelaySeconds(delay, action));
+//	}
 	
 //	public static IEnumerator WaitForSeconds(float time) {
 //		yield return new WaitForSeconds(time);

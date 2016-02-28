@@ -5,8 +5,8 @@ using System.Linq;
 // TODO: Need to store ApplicationManager and PlayerGameState as ScriptableObject, to make them accessible across scenes
 
 [ExecuteInEditMode]
-public class ApplicationManager : MonoBehaviour {
-	public static ApplicationManager Instance {
+public class GlobalManager : MonoBehaviour {
+	public static GlobalManager Instance {
 		get;
 		private set;
 	}
@@ -14,21 +14,21 @@ public class ApplicationManager : MonoBehaviour {
 	[HideInInspector]
 	public LevelInfo[] Levels = new LevelInfo[0];
 
-	public ApplicationManager() {
+	public GlobalManager() {
 	}
 
 	public bool IsValidLevel(string level) {
 		return Levels.Any(lvlInfo => lvlInfo.SceneName == level);
 	}
 
-	public int GetLevelIndex(string level) {
-		return Levels.ToList().FindIndex(lvlInfo => level == lvlInfo.SceneName);
-	}
+//	public int GetLevelIndex(string level) {
+//		return Levels.ToList().FindIndex(lvlInfo => level == lvlInfo.SceneName);
+//	}
 
 	void Awake()
 	{
 		if(Instance) {
-			Debug.LogWarning("Trying to create more than one ApplicationManager, but ApplicationManager is global Singleton.", this);
+			//Debug.LogWarning("Trying to create more than one GlobalManager, but GlobalManager is global Singleton.", this);
 			DestroyImmediate(gameObject);
 		}
 		else

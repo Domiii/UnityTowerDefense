@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour {
 	#region Game Events
 	public void WinGame() {
 		// mark level as finished
-		PlayerGameState.Instance.FinishedCurrentLevel ();
+		PlayerGameState.FinishedCurrentLevel ();
 		OnGameOverStart(GameStatus.Won, SceneAfterWin);
 	}
 	
@@ -96,9 +96,9 @@ public class GameManager : MonoBehaviour {
 			}
 
 			if (GameSceneSwitchDelay >= 0) {
-				CoroutineUtility.StartDelaySeconds(GameSceneSwitchDelay * Time.timeScale, () => {
+				StartCoroutine(CoroutineUtility.DelaySeconds(GameSceneSwitchDelay * Time.timeScale, () => {
 					EndGame (status, nextScene);
-				});
+				}));
 			}
 		}
 	}

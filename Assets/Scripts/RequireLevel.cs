@@ -7,8 +7,8 @@ public class RequireLevel : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		if (!PlayerGameState.Instance.HasFinishedLevel(Level)) {
-			enabled = false;
+		if (!PlayerGameState.HasFinishedLevel(Level)) {
+			gameObject.SetActive(false);
 		}
 	}
 	
