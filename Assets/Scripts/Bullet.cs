@@ -9,6 +9,7 @@ public class Bullet : MonoBehaviour {
 	public float MaxLifeTimeSeconds = 10;
 
 	float startTime;
+	bool hasHit = false;
 
 
 	// Use this for initialization
@@ -31,12 +32,13 @@ public class Bullet : MonoBehaviour {
 	void OnProjectileHit(Collider2D col) {
 		// when colliding with Unit -> Cause damage
 		var target = col.gameObject.GetComponent<Unit>();
-		if (target != null && target.CanBeAttacked && FactionManager.AreHostile (gameObject, target.gameObject)) {
+		if (!hasHit && target != null && target.CanBeAttacked && FactionManager.AreHostile (gameObject, target.gameObject)) {
 			var damageInfo = ObjectManager.Instance.Obtain<DamageInfo>();
 			damageInfo.Value = Random.Range(DamageMin, DamageMax);
 			damageInfo.SourceFactionType = FactionManager.GetFactionType(gameObject);
 			target.Damage(damageInfo);
 			Destroy (gameObject);
+			hasHit = true;
 		}
 	}
 }

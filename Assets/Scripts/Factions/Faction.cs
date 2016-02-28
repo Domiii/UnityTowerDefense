@@ -53,4 +53,14 @@ public class Faction : MonoBehaviour {
 		}
 	}
 	#endregion
+
+	void OnDeath() {
+		if (_factionType == FactionType.Player) {
+			// player lost
+			GameManager.Instance.LoseGame();
+		} else {
+			// player won
+			GameManager.Instance.WinGame();
+		}
+	}
 }

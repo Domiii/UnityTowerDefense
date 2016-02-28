@@ -84,7 +84,7 @@ public class PathFollower : MonoBehaviour {
 		
 		// move towards current target
 		var targetPosition = pathIterator.Current.position;
-		var rigidbody = GetComponent<Rigidbody2D> ();
+		//var rigidbody = GetComponent<Rigidbody2D> ();
 		var direction = targetPosition - transform.position;
 		direction.Normalize ();
 

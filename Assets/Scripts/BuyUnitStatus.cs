@@ -12,6 +12,7 @@ public class BuyUnitStatus {
 	}
 
 	public BuyUnitStatus(UnitManager unitManager, BuyUnitConfig cfg) {
+		lastBuyTime = Time.time;
 		this.unitManager = unitManager;
 		Config = cfg;
 	}

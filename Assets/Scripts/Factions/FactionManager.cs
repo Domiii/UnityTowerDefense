@@ -18,7 +18,7 @@ public static class FactionManager {
 	
 	internal static void RegisterFaction(FactionType factionType, Faction faction) {
 		if (_factions [(int)factionType] != null) {
-			Debug.LogWarning(factionType + " Faction has been overwritten.");
+			//Debug.LogWarning(factionType + " Faction has been overwritten.");
 		}
 		
 		_factions [(int)factionType] = faction;
