@@ -17,6 +17,8 @@ public class GameManagerEditor : Editor {
 
 		EditorGUILayout.LabelField ("When Lost", EditorStyles.boldLabel);
 		InspectSceneConfig("SceneAfterLoss");
+
+		EditorUtility.SetDirty(target);
 	}
 
 	void InspectSceneConfig(string name) {
