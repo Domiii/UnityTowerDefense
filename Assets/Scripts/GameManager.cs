@@ -104,14 +104,14 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
-	void EndGame(GameStatus status, SceneSwitchConfig nextScene) {
-		if (nextScene.SceneName == null) {
-			Debug.LogError("Next scene not set for game status: " + status);
-			return;
-		}
-
-		Application.LoadLevel (nextScene.SceneName);
-	}
+//	void EndGame(GameStatus status, SceneSwitchConfig nextScene) {
+//		if (nextScene.SceneName == null) {
+//			Debug.LogError("Next scene not set for game status: " + status);
+//			return;
+//		}
+//
+//		Application.LoadLevel (nextScene.SceneName);
+//	}
 }
 
 [System.Serializable]
