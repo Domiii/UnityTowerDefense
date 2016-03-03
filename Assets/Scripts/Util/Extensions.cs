@@ -15,6 +15,23 @@ public static class Extensions {
 		
 		return null;
 	}
+
+	public static C FindFirstDescendantWithComponent<C>(this Transform target)
+	{
+		var result = target.GetComponent<C>();
+		if (result != null) {
+			return result;
+		}
+
+		// recurse
+		for (int i = 0; i < target.childCount; ++i) {
+			var child = target.GetChild(i);
+			result = FindFirstDescendantWithComponent<C>(child);
+			if (result != null) return result;
+		}
+		
+		return default(C);
+	}
 	
 	/// <summary>
 	/// Recursively looks for the first descendant object of given name.
