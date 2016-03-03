@@ -16,7 +16,7 @@ public class PlayerGameState : MonoBehaviour {
 			try {
 				var levels = PlayerPrefs.GetString ("player.level");
 				FinishedLevels = levels.Split(',');
-				Debug.Log("Saved: " + string.Join(",", FinishedLevels));
+				//Debug.Log("Saved: " + string.Join(",", FinishedLevels));
 			}
 			catch (UnityException err) {
 				Debug.LogError("Unable to load game: " + err);
