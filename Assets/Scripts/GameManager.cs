@@ -57,7 +57,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Start() {
-		DontDestroyOnLoad(gameObject);
 	}
 
 	#region Public Methods
@@ -82,6 +81,10 @@ public class GameManager : MonoBehaviour {
 	
 	public void LoseGame() {
 		OnGameOverStart(GameStatus.Lost, SceneAfterLoss);
+	}
+
+	public void ResetGameData() {
+		PlayerGameState.Data.Reset ();
 	}
    	#endregion
 
