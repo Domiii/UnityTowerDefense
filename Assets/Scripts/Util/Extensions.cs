@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 public static class Extensions {
 	public static Transform FindChildByTag(this Transform target, String tag)
@@ -31,6 +31,34 @@ public static class Extensions {
 		}
 		
 		return default(C);
+	}
+	
+	public static List<C> FindDescendantsByName<C>(this Transform target, String name)
+	{
+		var list = new List<C> ();
+		FindDescendantsByName<C> (target);
+
+	}
+	
+	public static void FindDescendantsByName<C>(this Transform target, String name, List<C> list)
+	{
+		var child = target.FindChild (name);
+		if (child != null) {
+			var component = child.GetComponent<C>();
+			if (component != null) {
+				yield return component;
+			}
+		}
+		
+		// recurse
+		for (int i = 0; i < target.childCount; ++i) {
+			var result = FindDescendantsByName<C>(target.GetChild(i), name);
+			if (result != null) {
+				foreach (var r in result) {
+					yield return result;
+				}
+			}
+		}
 	}
 	
 	/// <summary>
