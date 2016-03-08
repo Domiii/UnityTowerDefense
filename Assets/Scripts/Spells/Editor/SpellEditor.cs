@@ -10,81 +10,6 @@ using System.Linq;
 
 using Spells;
 
-// TODO: Rename or hide different options in different contexts
-
-public class ReorderableListManager<A>
-	where A : ScriptableObject
-{
-	Dictionary<A[], ReorderableListWrapper<A>> lists;
-	string label;
-}
-
-// TODO: Wrap ReorderableList to reflect array of custom ScriptableObjects
-// see: http://va.lent.in/unity-make-your-lists-functional-with-reorderablelist/
-public class ReorderableListWrapper<A>
-	where A : ScriptableObject
-{
-	string label;
-	A[] arr;
-	SerializedObject serializedObject;
-	IEnumerable<CustomScriptableObjectEntry> possibleEntries;
-	ReorderableList list;
-
-	public ReorderableListWrapper(string label, A[] arr, SerializedObject serializedObject, SerializedProperty serializedProperty) {
-		this.label = label;
-		this.arr = arr;
-		this.serializedObject = serializedObject;
-
-		possibleEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
-		list = new ReorderableList(serializedObject, serializedProperty, false, true, true, true);
-		list.drawElementCallback = OnDrawElement;
-		list.drawHeaderCallback = OnDrawHeader;
-		list.onAddDropdownCallback = OnAddDropdown;
-	}
-
-	public void Render() {
-		list.DoLayoutList ();
-	}
-
-	void OnDrawElement(Rect rect, int index, bool isActive, bool isFocused) {
-		var obj = arr [index];
-		var serializedWrapper = new SerializedObject(obj);
-		var objProp = serializedWrapper.GetIterator();
-		if (objProp.hasChildren) {
-			objProp.NextVisible(true);		// ignore script
-			while (objProp.NextVisible(true)) {
-				EditorGUILayout.PropertyField(objProp, true);
-			}
-			serializedWrapper.ApplyModifiedProperties();
-		}
-	}
-
-	void OnDrawHeader(Rect rect) {
-		EditorGUI.LabelField(rect, label);
-	}
-	
-	void OnAddDropdown(Rect buttonRect, ReorderableList list) {  
-		var menu = new GenericMenu();
-		foreach (var entry in possibleEntries) {
-			menu.AddItem(new GUIContent(entry.Name),
-			             false, 
-			             OnDropdownClick, 
-			             entry);
-		}
-		menu.ShowAsContext();
-	}
-
-	private void OnDropdownClick(object source) {
-		//var entry = (CustomScriptableObjectEntry)source;
-
-		// TODO: instantiate
-
-		//ArrayUtility.Add (ref arr, obj);
-
-		serializedObject.ApplyModifiedProperties();
-	}
-}
-
 
 [CustomEditor(typeof(Spell))]
 public class SpellEditor : Editor {
@@ -93,7 +18,7 @@ public class SpellEditor : Editor {
 
 	void OnEnable() {
 		//var effects = CustomScriptableObjectManagerEditor.Scripts.GetEntries<SpellEffect>();
-		//allSpellEffects = new ReorderableList ();
+		spellEffectLists = new ReorderableListManager<SpellEffect> (target);
 	}
 
 	public override void OnInspectorGUI () {
@@ -116,11 +41,11 @@ public class SpellEditor : Editor {
 		CustomGUIUtils.DrawSeparator ();
 		InspectImpactPhaseTemplate();
 
-		if (GUI.changed) {
+		//if (GUI.changed) {
 			// write values back
 			serializedObject.ApplyModifiedProperties ();
 			EditorUtility.SetDirty(target);
-		}
+		//}
 
 		// TODO: For duplicate, we need to also duplicate all ScriptableObject sub assets
 //		if (GUILayout.Button ("Duplicate")) {
@@ -137,7 +62,7 @@ public class SpellEditor : Editor {
 	#region Spell System Inspectors
 	void InspectCastPhaseTemplate() {
 		var spell = (Spell)target;
-		spell.CastPhase = ToggleAddRemoveScriptableObject ("Cast Phase", spell.CastPhase);
+		spell.CastPhase = ScriptableObjectEditorUtil.ToggleAddRemoveScriptableObject ("Cast Phase", target, spell.CastPhase);
 		if (spell.CastPhase != null) {
 			InspectSpellPhaseTemplate(spell.CastPhase);
 		}
@@ -145,7 +70,7 @@ public class SpellEditor : Editor {
 	
 	void InspectProjectilePhaseTemplate() {
 		var spell = (Spell)target;
-		spell.ProjectilePhase = ToggleAddRemoveScriptableObject ("Projectile Phase", spell.ProjectilePhase);
+		spell.ProjectilePhase = ScriptableObjectEditorUtil.ToggleAddRemoveScriptableObject ("Projectile Phase", target, spell.ProjectilePhase);
 		if (spell.ProjectilePhase != null) {
 			InspectSpellPhaseTemplate(spell.ProjectilePhase);
 		}
@@ -153,7 +78,7 @@ public class SpellEditor : Editor {
 	
 	void InspectImpactPhaseTemplate() {
 		var spell = (Spell)target;
-		spell.ImpactPhase = ToggleAddRemoveScriptableObject ("Impact Phase", spell.ImpactPhase);
+		spell.ImpactPhase = ScriptableObjectEditorUtil.ToggleAddRemoveScriptableObject ("Impact Phase", target, spell.ImpactPhase);
 		if (spell.ImpactPhase != null) {
 			InspectSpellPhaseTemplate(spell.ImpactPhase);
 		}
@@ -164,11 +89,55 @@ public class SpellEditor : Editor {
 		++EditorGUI.indentLevel;
 		template.Duration = EditorGUILayout.FloatField ("Duration", template.Duration);
 		template.PhaseObjectPrefab = (GameObject)EditorGUILayout.ObjectField ("Phase Prefab", template.PhaseObjectPrefab, typeof(GameObject), false);
-		
+
 		InspectSpellEffects ("Start Effects", ref template.StartEffects);
 		InspectRepeatSpellEffects ("Repeat Effects", ref template.RepeatEffects);
 		InspectSpellEffects ("End Effects", ref template.EndEffects);
+		InspectAuraTemplate ("Aura", ref template.AuraTemplate);
 		--EditorGUI.indentLevel;
+	}
+	
+	void InspectSpellEffects(string label, ref SpellEffectCollection spellEffects) {
+		spellEffects = ScriptableObjectEditorUtil.ToggleAddRemoveScriptableObject(label, target, spellEffects);
+		if (spellEffects != null) {
+			++EditorGUI.indentLevel;
+			InspectSpellEffects(spellEffects);
+			--EditorGUI.indentLevel;
+		}
+	}
+	
+	void InspectRepeatSpellEffects(string label, ref RepeatSpellEffectCollection spellEffects) {
+		spellEffects = ScriptableObjectEditorUtil.ToggleAddRemoveScriptableObject (label, target, spellEffects);
+		if (spellEffects != null) {
+			++EditorGUI.indentLevel;
+			spellEffects.RepeatDelay = EditorGUILayout.FloatField ("Repeat Delay", spellEffects.RepeatDelay);
+			spellEffects.MaxRepetitions = EditorGUILayout.FloatField ("MaxRepetitions", spellEffects.MaxRepetitions);
+			InspectSpellEffects(spellEffects);
+			--EditorGUI.indentLevel;
+		}
+	}
+	
+	void InspectAuraTemplate(string label, ref AuraTemplate template) {
+		template = ScriptableObjectEditorUtil.ToggleAddRemoveScriptableObject(label, target, template);
+		if (template != null) {
+			++EditorGUI.indentLevel;
+			// TODO
+			//InspectSpellEffects(spellEffects);
+			--EditorGUI.indentLevel;
+		}
+	}
+	
+	void InspectSpellEffects(SpellEffectCollection collection) {
+		//InspectArrayWithInheritance(ref arr);
+
+		// for some reason we cannot find the children of the original SO, so we create a new one here, and it works magically
+		var so = new SerializedObject (collection);
+		var prop = so.FindProperty ("Effects");
+		
+		var arr = collection.Effects;
+
+		var list = spellEffectLists.GetOrCreate (null, so, prop, arr);
+		list.Render ();
 	}
 	
 	void InspectSpellTargetSettings(SpellTargetSettings targets) {
@@ -179,32 +148,8 @@ public class SpellEditor : Editor {
 		
 		InspectArrayWithInheritanceMutuallyExclusiveTypes (ref targets.TargetCollectors);
 		InspectArrayWithInheritanceMutuallyExclusiveTypes (ref targets.TargetFilters);
-
+		
 		--EditorGUI.indentLevel;
-	}
-	
-	void InspectSpellEffects(string label, ref SpellEffectCollection spellEffects) {
-		spellEffects = ToggleAddRemoveScriptableObject(label, spellEffects);
-		if (spellEffects != null) {
-			++EditorGUI.indentLevel;
-			InspectSpellEffects(ref spellEffects.Effects);
-			--EditorGUI.indentLevel;
-		}
-	}
-	
-	void InspectRepeatSpellEffects(string label, ref RepeatSpellEffectCollection spellEffects) {
-		spellEffects = ToggleAddRemoveScriptableObject (label, spellEffects);
-		if (spellEffects != null) {
-			++EditorGUI.indentLevel;
-			spellEffects.RepeatDelay = EditorGUILayout.FloatField ("Repeat Delay", spellEffects.RepeatDelay);
-			spellEffects.MaxRepetitions = EditorGUILayout.FloatField ("MaxRepetitions", spellEffects.MaxRepetitions);
-			InspectSpellEffects(ref spellEffects.Effects);
-			--EditorGUI.indentLevel;
-		}
-	}
-	
-	void InspectSpellEffects(ref SpellEffect[] arr) {
-		InspectArrayWithInheritance(ref arr);
 	}
 	#endregion
 
@@ -236,7 +181,7 @@ public class SpellEditor : Editor {
 	void InspectArrayWithInheritanceMutuallyExclusiveTypes<A>(ref A[] arr) 
 		where A : ScriptableObject
 	{
-		var allEntries = CustomScriptableObjectManagerEditor.Scripts.GetEntries<A>();
+		var allEntries = ScriptableObjectEditorUtil.Scripts.GetEntries<A>();
 		
 		// remove empty entries
 		for (var i = arr.Length-1; i >= 0; --i) {
@@ -250,7 +195,7 @@ public class SpellEditor : Editor {
 			var matchingObjectIndex = ArrayUtility.FindIndex(arr, collector => collector.GetType() == entry.Type);
 			var wasAdded = matchingObjectIndex >= 0;
 			var originalObj = wasAdded ? arr[matchingObjectIndex] : null;
-			var obj = ToggleAddRemoveScriptableObject(entry.Name, originalObj, entry.Type);
+			var obj = ScriptableObjectEditorUtil.ToggleAddRemoveScriptableObject(entry.Name, target, originalObj, entry.Type);
 			var isAdded = obj != null;
 			if (isAdded != wasAdded) {
 				if (!isAdded) {
@@ -261,7 +206,6 @@ public class SpellEditor : Editor {
 					// add
 					ArrayUtility.Add(ref arr, obj);
 				}
-				serializedObject.Update();
 			}
 			
 			if (obj != null) {
@@ -285,38 +229,14 @@ public class SpellEditor : Editor {
 		}
 	}
 	#endregion
-
-	#region Object Management
-	T AddNewObjectToAsset<T>() 
-		where T : ScriptableObject
-	{
-		return (T)AddNewObjectToAsset(typeof(T));
-	}
 	
-	ScriptableObject AddNewObjectToAsset(System.Type type) {
-		var newObj = ScriptableObject.CreateInstance(type);
-		newObj.hideFlags = HideFlags.HideInHierarchy;
-		newObj.name = type.Name;
-		AssetDatabase.AddObjectToAsset(newObj, target);
-		AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(newObj));
-		AssetDatabase.SaveAssets();
-
-		return newObj;
-	}
-	
-	void DeleteObjectFromAsset(ScriptableObject obj) {
-		UnityEngine.Object.DestroyImmediate (obj, true);
-	}
-	#endregion
-
-
 	#region GUI Components
 	T ToggleAddRemoveSerializable<T>(string label, T obj)
 		where T : new()
 	{
 		var wasAdded = !EqualityComparer<T>.Default.Equals(obj, default(T));
 		var isObjectAdded = EditorGUILayout.Toggle (label, wasAdded);
-
+		
 		if (isObjectAdded != wasAdded) {
 			if (!isObjectAdded) {
 				// remove
@@ -326,34 +246,6 @@ public class SpellEditor : Editor {
 				// add
 				obj = new T();
 			}
-			serializedObject.Update();
-		}
-		return obj;
-	}
-	
-	T ToggleAddRemoveScriptableObject<T>(string label, T obj)
-		where T : ScriptableObject
-	{
-		return ToggleAddRemoveScriptableObject (label, obj, typeof(T));
-	}
-
-	T ToggleAddRemoveScriptableObject<T>(string label, T obj, System.Type type) 
-		where T : ScriptableObject
-	{
-		Debug.Assert (type == typeof(T) || type.IsSubclassOf(typeof(T)), "Given type (should, but) is not equal to and does not inherit from T");
-		var wasAdded = obj != null;
-		var isObjectAdded = EditorGUILayout.Toggle (label, wasAdded);
-		if (isObjectAdded != wasAdded) {
-			if (!isObjectAdded) {
-				// remove
-				DeleteObjectFromAsset(obj);
-				obj = null;
-			}
-			else {
-				// add
-				obj = (T)AddNewObjectToAsset(type);
-			}
-			serializedObject.Update();
 		}
 		return obj;
 	}

@@ -5,8 +5,8 @@ using System.Collections.Generic;
 
 namespace Spells {
 	public class SpellEffectCollection : ScriptableObject, IEnumerable<SpellEffect> {
-		public SpellEffect[] Effects;
-		public SpellTargetSettings TargetSettings;
+		public SpellEffect[] Effects = new SpellEffect[0];
+		public SpellTargetSettings TargetSettings = new SpellTargetSettings();
 
 		public IEnumerator<SpellEffect> GetEnumerator() {
 			return Effects.AsEnumerable().GetEnumerator();

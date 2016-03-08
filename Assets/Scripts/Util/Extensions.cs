@@ -36,7 +36,8 @@ public static class Extensions {
 	public static List<C> FindDescendantsByName<C>(this Transform target, String name)
 	{
 		var list = new List<C> ();
-		FindDescendantsByName<C> (target);
+		FindDescendantsByName<C> (target, name, list);
+		return list;
 
 	}
 	
@@ -46,18 +47,13 @@ public static class Extensions {
 		if (child != null) {
 			var component = child.GetComponent<C>();
 			if (component != null) {
-				yield return component;
+				list.Add(component);
 			}
 		}
 		
 		// recurse
 		for (int i = 0; i < target.childCount; ++i) {
-			var result = FindDescendantsByName<C>(target.GetChild(i), name);
-			if (result != null) {
-				foreach (var r in result) {
-					yield return result;
-				}
-			}
+			FindDescendantsByName<C>(target.GetChild(i), name, list);
 		}
 	}
 	

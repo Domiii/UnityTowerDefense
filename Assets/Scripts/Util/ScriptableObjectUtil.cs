@@ -25,7 +25,7 @@ public class CustomScriptableObjectEntry {
 /// <summary>
 /// Manage Behavior scripts. 
 /// </summary>
-public class CustomScriptableObjectManager {
+public class ScriptableObjectUtil {
 	public static void GetAllTypesWithAttribute<A> (Assembly assembly, System.Action<System.Type, A> cb)
 		where A : System.Attribute
 	{
@@ -38,8 +38,8 @@ public class CustomScriptableObjectManager {
 		}
 	}
 
-	public static CustomScriptableObjectManager FindAllCustomScriptableObjects() {
-		var mgr = new CustomScriptableObjectManager ();
+	public static ScriptableObjectUtil FindAllCustomScriptableObjects() {
+		var mgr = new ScriptableObjectUtil ();
 		GetAllTypesWithAttribute<CustomScriptableObjectAttribute>(Assembly.GetAssembly(typeof(CustomScriptableObjectAttribute)), mgr.AddEntry);
 		return mgr;
 	}
@@ -50,7 +50,7 @@ public class CustomScriptableObjectManager {
 	}
 
 	public List<CustomScriptableObjectEntry> Scripts;
-	CustomScriptableObjectManager() {
+	ScriptableObjectUtil() {
 		Scripts = new List<CustomScriptableObjectEntry> ();
 	}
 
@@ -59,6 +59,15 @@ public class CustomScriptableObjectManager {
 			Type = type,
 			Attribute = attr
 		});
+	}
+
+	public static string GetName(System.Type type) {
+		var attrs = type.GetCustomAttributes(typeof(CustomScriptableObjectAttribute), true);
+		if (attrs.Length > 0) {
+			var attr = (CustomScriptableObjectAttribute)attrs[0];
+			return attr.Name;
+		}
+		return type.Name;
 	}
 
 	public IEnumerable<CustomScriptableObjectEntry> GetEntries<T>() {
