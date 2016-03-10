@@ -43,17 +43,18 @@ public static class Extensions {
 	
 	public static void FindDescendantsByName<C>(this Transform target, String name, List<C> list)
 	{
-		var child = target.FindChild (name);
-		if (child != null) {
-			var component = child.GetComponent<C>();
-			if (component != null) {
-				list.Add(component);
-			}
-		}
-		
 		// recurse
 		for (int i = 0; i < target.childCount; ++i) {
-			FindDescendantsByName<C>(target.GetChild(i), name, list);
+			var child = target.GetChild(i);
+
+			if (child.name == name) {
+				var component = child.GetComponent<C>();
+				if (component != null) {
+					list.Add(component);
+				}
+			}
+			
+			FindDescendantsByName<C>(child, name, list);
 		}
 	}
 	
