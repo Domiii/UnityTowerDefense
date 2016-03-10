@@ -4,10 +4,23 @@ using System.Collections.Generic;
 using UnityEngine.Events;
 
 public class QuizDialog : MonoBehaviour {
-	public QuestionSet Questions;
+	static int ExtraCreditsOnStart;
 
-	public UnityEvent OnRightAnswer;
-	public UnityEvent OnWrongAnswer;
+	public static int GetExtraStartCredits() {
+		var credit = ExtraCreditsOnStart;
+		ExtraCreditsOnStart = 0;
+		return credit;
+	}
+
+	public QuestionSet Questions;
+	public int RightAnswerCreditReward;
+	public GameObject RightPrefab, WrongPrefab;
+
+	[HideInInspector]
+	public string NextScene;
+
+	//public UnityEvent OnRightAnswer;
+	//public UnityEvent OnWrongAnswer;
 
 	QuizQuestion Question;
 	Text questionText;
@@ -59,10 +72,32 @@ public class QuizDialog : MonoBehaviour {
 
 
 	public void SubmitAnswer(QuizAnswer ans) {
+		GameObject nextPrefab;
+
 		if (ans.IsCorrect) {
-			OnRightAnswer.Invoke ();
+			//OnRightAnswer.Invoke ();
+			ExtraCreditsOnStart = RightAnswerCreditReward;
+			nextPrefab = RightPrefab;
+
 		} else {
-			OnWrongAnswer.Invoke();
+			ExtraCreditsOnStart = 0;
+			nextPrefab = WrongPrefab;
+			//OnWrongAnswer.Invoke();
+		}
+
+		if (nextPrefab == null) {
+			Application.LoadLevel (NextScene);
+		} else {
+			var go = (GameObject)Instantiate(nextPrefab);
+			var nextSceneButton = go.transform.FindFirstDescendantByName("NextSceneButton");
+			if (nextSceneButton != null) {
+				var switchScene = nextSceneButton.GetComponent<SwitchSceneButton>();
+				if (switchScene == null) {
+					switchScene = nextSceneButton.gameObject.AddComponent<SwitchSceneButton>();
+				}
+
+				switchScene.SceneName = NextScene;
+			}
 		}
 	}
 }

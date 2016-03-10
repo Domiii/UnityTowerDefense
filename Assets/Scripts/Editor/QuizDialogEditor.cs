@@ -9,6 +9,9 @@ public class QuizDialogEditor : Editor {
 		base.OnInspectorGUI ();
 
 		var dialog = (QuizDialog)target;
+		
+		// display scene dropdown
+		dialog.NextScene = SceneUtility.InspectSceneSelectionDropdown("Next Scene", dialog.NextScene);
 
 		if (GUILayout.Button("Update")) {
 			dialog.Start ();

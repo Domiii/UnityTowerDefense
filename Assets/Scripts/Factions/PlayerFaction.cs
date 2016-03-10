@@ -9,7 +9,7 @@ public class PlayerFaction : Faction {
 
 	// Use this for initialization
 	void Start () {
-	
+		Credits += QuizDialog.GetExtraStartCredits();
 	}
 	
 	// Update is called once per frame
