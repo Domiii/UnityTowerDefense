@@ -54,9 +54,9 @@ public class QuizDialog : MonoBehaviour {
 		}
 
 		questionText.text = Question.QuestionText;
-		var minCount = System.Math.Min (Question.Answers.Length, answerButtons.Count);
-		minCount = System.Math.Min (minCount, answerTexts.Count);
-		for (var i = 0; i < minCount; ++i) {
+		var count = System.Math.Min (Question.Answers.Length, answerButtons.Count);
+		count = System.Math.Min (count, answerTexts.Count);
+		for (var i = 0; i < count; ++i) {
 			var ans = Question.Answers[i];
 			answerTexts[i].text = ans.AnswerText;
 
@@ -67,6 +67,12 @@ public class QuizDialog : MonoBehaviour {
 
 			btn.Dialog = this;
 			btn.Answer = ans;
+		}
+
+		// hide unused buttons
+		for (var i = count; i < answerButtons.Count; ++i) {
+			var btn = answerButtons[i];
+			btn.gameObject.SetActive(false);
 		}
 	}
 
