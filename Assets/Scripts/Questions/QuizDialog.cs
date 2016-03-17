@@ -45,13 +45,14 @@ public class QuizDialog : MonoBehaviour {
 		}
 
 		Question = Questions.Questions[Random.Range (0, Questions.Questions.Length)];
+		Debug.Log (Question.QuestionText);
 	}
 
 
 	public void FillInQuestionData() {
-		if (Question == null) {
+		//if (Question == null) {
 			PickRandomQuestion ();
-		}
+		//}
 
 		questionText.text = Question.QuestionText;
 		var count = System.Math.Min (Question.Answers.Length, answerButtons.Count);
@@ -67,6 +68,7 @@ public class QuizDialog : MonoBehaviour {
 
 			btn.Dialog = this;
 			btn.Answer = ans;
+			btn.gameObject.SetActive(true);
 		}
 
 		// hide unused buttons
