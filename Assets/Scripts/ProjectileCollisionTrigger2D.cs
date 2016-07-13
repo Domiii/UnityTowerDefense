@@ -73,45 +73,43 @@ public class ProjectileCollisionTrigger2D : MonoBehaviour {
 		Vector2 movementThisStep = (Vector2)transform.position - previousPosition;
 		float movementSqrMagnitude = movementThisStep.sqrMagnitude;
 		
-		if (movementSqrMagnitude > sqrMinimumExtent) {
-			float movementMagnitude = Mathf.Sqrt(movementSqrMagnitude);
-			
-			//check for obstructions we might have missed 
-			RaycastHit2D[] hitsInfo = Physics2D.RaycastAll(previousPosition, movementThisStep, movementMagnitude, hitLayers.value);
-			
-			//Going backward because we want to look at the first collisions first. Because we want to destroy the once that are closer to previous position
-			for (int i = 0; i < hitsInfo.Length; ++i) {
-				var hitInfo = hitsInfo[i];
-				if (hitInfo && hitInfo.collider != myCollider) {
-					// apply force
-					if (hitInfo.rigidbody != null && momentumTransferFraction != 0) {
-						// When using impulse mode, the force argument is actually the amount of instantaneous momentum transfered.
-						// Quick physics refresher: F = dp / dt = m * dv / dt
-						// Note: dt is the amount of time traveled (which is the time of the current frame and is taken care of internally, when using impulse mode)
-						// For more info, go here: http://forum.unity3d.com/threads/rigidbody2d-forcemode-impulse.213397/
-						var dv = myRigidbody.velocity;
-						var m = myRigidbody.mass;
-						var dp = dv * m;
-						var impulse = momentumTransferFraction * dp;
-						hitInfo.rigidbody.AddForceAtPosition(impulse, hitInfo.point, ForceMode2D.Impulse);
+		float movementMagnitude = Mathf.Sqrt(movementSqrMagnitude);
+		
+		//check for obstructions we might have missed 
+		RaycastHit2D[] hitsInfo = Physics2D.RaycastAll(previousPosition, movementThisStep, movementMagnitude, hitLayers.value);
+		
+		//Going backward because we want to look at the first collisions first. Because we want to destroy the once that are closer to previous position
+		for (int i = 0; i < hitsInfo.Length; ++i) {
+			var hitInfo = hitsInfo[i];
+			if (hitInfo && hitInfo.collider != myCollider) {
+				// apply force
+				if (hitInfo.rigidbody != null && momentumTransferFraction != 0) {
+					// When using impulse mode, the force argument is actually the amount of instantaneous momentum transfered.
+					// Quick physics refresher: F = dp / dt = m * dv / dt
+					// Note: dt is the amount of time traveled (which is the time of the current frame and is taken care of internally, when using impulse mode)
+					// For more info, go here: http://forum.unity3d.com/threads/rigidbody2d-forcemode-impulse.213397/
+					var dv = myRigidbody.velocity;
+					var m = myRigidbody.mass;
+					var dp = dv * m;
+					var impulse = momentumTransferFraction * dp;
+					hitInfo.rigidbody.AddForceAtPosition(impulse, hitInfo.point, ForceMode2D.Impulse);
 
-						if (momentumTransferFraction < 1) {
-							// also apply force to self (in opposite direction)
-							var impulse2 = (1-momentumTransferFraction) * dp;
-							hitInfo.rigidbody.AddForceAtPosition(-impulse2, hitInfo.point, ForceMode2D.Impulse);
-						}
+					if (momentumTransferFraction < 1) {
+						// also apply force to self (in opposite direction)
+						var impulse2 = (1-momentumTransferFraction) * dp;
+						hitInfo.rigidbody.AddForceAtPosition(-impulse2, hitInfo.point, ForceMode2D.Impulse);
 					}
+				}
 
-					// move this object to point of collision
-					transform.position = hitInfo.point;
+				// move this object to point of collision
+				transform.position = hitInfo.point;
 
-					// send hit messages
-					if (((int)triggerTarget & (int)TriggerTarget.Other) != 0 && hitInfo.collider.isTrigger) {
-						hitInfo.collider.SendMessage(MessageName, myCollider, SendMessageOptions.DontRequireReceiver);
-					}
-					if (((int)triggerTarget & (int)TriggerTarget.Self) != 0) {
-						SendMessage(MessageName, hitInfo.collider, SendMessageOptions.DontRequireReceiver);
-					}
+				// send hit messages
+				if (((int)triggerTarget & (int)TriggerTarget.Other) != 0 && hitInfo.collider.isTrigger) {
+					hitInfo.collider.SendMessage(MessageName, myCollider, SendMessageOptions.DontRequireReceiver);
+				}
+				if (((int)triggerTarget & (int)TriggerTarget.Self) != 0) {
+					SendMessage(MessageName, hitInfo.collider, SendMessageOptions.DontRequireReceiver);
 				}
 			}
 		}
